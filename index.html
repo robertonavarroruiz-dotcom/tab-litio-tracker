@@ -110,12 +110,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:13
 .exp-row:last-child{border-bottom:none}
 .exp-row span{color:var(--text2);flex:1;font-weight:500}
 .dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.info-box{background:#EFF6FF;border:1px solid #BFDBFE;border-radius:10px;padding:18px;margin-bottom:16px}
-.info-box-title{font-size:13px;font-weight:700;color:#1D4ED8;margin-bottom:10px;display:flex;align-items:center;gap:6px}
-.info-box ol{margin-left:20px;color:var(--text2);font-size:12px;line-height:2}
-.info-box code{background:#DBEAFE;color:#1D4ED8;padding:2px 7px;border-radius:4px;font-family:monospace;font-size:12px}
-.info-box.green{background:#F0FDF4;border-color:#BBF7D0}
-.info-box.green .info-box-title{color:#166534}
+.sync-bar{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text3);margin-bottom:12px}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--ok)}
+.sync-dot.syncing{background:var(--warn);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 </style>
 </head>
 <body>
@@ -139,6 +137,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:13
 <div id="modal-root"></div>
 
 <script>
+const SB_URL='https://uyshgtnvmdwjmtuxqbzb.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV5c2hndG52bWR3am10dXhxYnpiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4NDQ5MDAsImV4cCI6MjA5NTQyMDkwMH0.yv18zffPgk1kND_ACfhPY-08KttdCEzWIx6ZDr5WrzE';
 const LOGO_SRC='data:image/png;base64,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';
 
 const ROLES={
@@ -150,23 +150,59 @@ const ESTADOS=['Detectada','Revisión PM','Enviada cliente','Ganada','Perdida'];
 const PRODUCTOS=['BESS','Batería Litio','Inversor','Smart Meter','Mixto BESS+Inversor','HV System'];
 const CLIENTES=['AZIMUT','RICARD'];
 
-let S={
-  user:null,tab:'opps',filter:{q:'',estado:'',cliente:''},
-  opps:[{
-    id:'LIT-001',
-    nombre:"CONTRACTE DE SUBMINISTRAMENT I INSTAL·LACIÓ D'UN INVERSOR HÍBRID, BATERIA I SISTEMA DE MONITORATGE",
-    expediente:'IEEC/38/2026',tipo:'Público',plataforma:'contractaciopublica.cat',
-    fecha:'2026-05-05',organo:"Institut d'Estudis Espacials de Catalunya",
-    cliente:'AZIMUT',estado:'Detectada',producto:'HV System',subdivision:'HV',
-    importe:26806.75,importe_licitacion:86.60605,fecha_limite:'2026-05-04',
-    precio_final:null,aprobado_pm:false,
-    descripcion:"Oferta pasada. Contracte de subministrament i instal·lació d'un inversor híbrid, bateria i sistema de monitoratge.",
-    docs:[],competidores:[],
-    timeline:[{fecha:'2026-05-05',txt:'Creat manualment per Roberto · Detector'}]
-  }],
-  selId:null
-};
+let S={user:null,tab:'opps',filter:{q:'',estado:'',cliente:''},opps:[],selId:null,syncing:false};
 let pendingFiles=[];
+
+// ── SUPABASE API ──
+async function sbFetch(path,opts={}){
+  const res=await fetch(SB_URL+path,{
+    headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'return=representation',...(opts.headers||{})},
+    ...opts
+  });
+  if(!res.ok){const t=await res.text();console.error('SB error:',t);return null;}
+  const ct=res.headers.get('content-type')||'';
+  if(ct.includes('application/json')&&res.status!==204) return res.json();
+  return true;
+}
+
+async function loadOpps(){
+  S.syncing=true;renderSyncBar();
+  const rows=await sbFetch('/rest/v1/oportunidades?select=*&order=updated_at.desc');
+  if(rows) S.opps=rows.map(r=>r.data);
+  S.syncing=false;renderSyncBar();
+}
+
+async function saveOpp(o){
+  S.syncing=true;renderSyncBar();
+  o.updated_at=new Date().toISOString();
+  await sbFetch('/rest/v1/oportunidades',{
+    method:'POST',
+    headers:{'Prefer':'resolution=merge-duplicates,return=representation'},
+    body:JSON.stringify({id:o.id,data:o})
+  });
+  S.syncing=false;renderSyncBar();
+}
+
+async function uploadDoc(oppId,file){
+  const ext=file.name.split('.').pop();
+  const path=oppId+'/'+Date.now()+'-'+file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+  const res=await fetch(SB_URL+'/storage/v1/object/documentos/'+path,{
+    method:'POST',
+    headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':file.type||'application/octet-stream'},
+    body:file
+  });
+  if(!res.ok){alert('Error subiendo archivo: '+file.name);return null;}
+  const publicUrl=SB_URL+'/storage/v1/object/public/documentos/'+path;
+  return {name:file.name,size:fmtSz(file.size),type:file.type,url:publicUrl,path};
+}
+
+function renderSyncBar(){
+  const el=document.getElementById('sync-bar');
+  if(!el)return;
+  el.innerHTML=S.syncing
+    ?'<div class="sync-dot syncing"></div><span>Sincronizando...</span>'
+    :'<div class="sync-dot"></div><span>Sincronizado con Supabase · datos compartidos</span>';
+}
 
 function can(p){return S.user&&ROLES[S.user].perms.includes(p)}
 function fmt(n){if(!n&&n!==0)return'—';return'€'+Number(n).toLocaleString('es-ES')}
@@ -176,7 +212,7 @@ function fileIcon(n){const e=(n||'').split('.').pop().toLowerCase();return{pdf:'
 function fmtSz(b){if(b<1024)return b+' B';if(b<1048576)return Math.round(b/1024)+' KB';return(b/1048576).toFixed(1)+' MB'}
 function push(o,txt){o.timeline.push({fecha:new Date().toISOString().slice(0,10),txt})}
 
-function render(){
+async function render(){
   if(!S.user){renderLogin();return;}
   renderNav();
   document.getElementById('user-label').textContent=ROLES[S.user].label;
@@ -184,7 +220,6 @@ function render(){
   if(S.tab==='opps')renderOpps(m);
   else if(S.tab==='dash')renderDash(m);
   else if(S.tab==='export')renderExport(m);
-  else if(S.tab==='acceso')renderAcceso(m);
 }
 
 function renderLogin(){
@@ -205,15 +240,20 @@ function renderLogin(){
     +'<button class="btn btn-p btn-full" onclick="doLogin()"><i class="ti ti-login"></i> Entrar</button>'
     +'</div></div>';
 }
-function doLogin(){const v=document.getElementById('lr').value;if(!v)return;S.user=v;S.tab='opps';render()}
-function logout(){S.user=null;document.getElementById('modal-root').innerHTML='';render()}
+async function doLogin(){
+  const v=document.getElementById('lr').value;if(!v)return;
+  S.user=v;S.tab='opps';
+  document.getElementById('main').innerHTML='<div style="text-align:center;padding:60px;color:var(--text3)"><i class="ti ti-loader" style="font-size:32px;display:block;margin-bottom:10px;animation:pulse 1s infinite"></i>Cargando datos...</div>';
+  await loadOpps();
+  render();
+}
+function logout(){S.user=null;S.opps=[];render()}
 
 function renderNav(){
   const tabs=[
     {id:'opps',label:'Oportunidades',icon:'ti-briefcase'},
     {id:'dash',label:'Dashboard',icon:'ti-chart-bar'},
     {id:'export',label:'Exportar',icon:'ti-download'},
-    {id:'acceso',label:'Acceso GitHub',icon:'ti-brand-github'},
   ];
   document.getElementById('nav-tabs').innerHTML=tabs.map(t=>'<div class="ntab '+(S.tab===t.id?'active':'')+'" onclick="setTab(\''+t.id+'\')"><i class="ti '+t.icon+'"></i> '+t.label+'</div>').join('');
 }
@@ -230,7 +270,8 @@ function renderOpps(main){
   const cnt={};ESTADOS.forEach(e=>cnt[e]=S.opps.filter(o=>o.estado===e).length);
   const tot=S.opps.reduce((a,b)=>a+(b.importe||0),0);
   main.innerHTML=
-    '<div class="stats">'
+    '<div class="sync-bar" id="sync-bar"></div>'
+    +'<div class="stats">'
     +'<div class="stat"><div class="sv c-tab">'+S.opps.length+'</div><div class="sl">Expedientes</div></div>'
     +'<div class="stat"><div class="sv c-w">'+(cnt['Revisión PM']||0)+'</div><div class="sl">En revisión PM</div></div>'
     +'<div class="stat"><div class="sv" style="color:var(--info)">'+(cnt['Enviada cliente']||0)+'</div><div class="sl">Enviadas</div></div>'
@@ -241,11 +282,13 @@ function renderOpps(main){
     +'<input placeholder="Buscar expediente…" value="'+esc(q)+'" oninput="S.filter.q=this.value;render()">'
     +'<select onchange="S.filter.estado=this.value;render()"><option value="">Todos los estados</option>'+ESTADOS.map(e=>'<option value="'+e+'" '+(estado===e?'selected':'')+'>'+e+'</option>').join('')+'</select>'
     +'<select onchange="S.filter.cliente=this.value;render()"><option value="">Todos los clientes</option>'+CLIENTES.map(c=>'<option '+(cliente===c?'selected':'')+'>'+c+'</option>').join('')+'</select>'
-    +'<div style="margin-left:auto">'+(can('add')?'<button class="btn btn-p btn-sm" onclick="openNewModal()"><i class="ti ti-plus"></i> Nueva oportunidad</button>':'')+'</div>'
-    +'</div>'
+    +'<div style="margin-left:auto;display:flex;gap:8px">'
+    +'<button class="btn btn-g btn-sm" onclick="recargar()"><i class="ti ti-refresh"></i> Actualizar</button>'
+    +(can('add')?'<button class="btn btn-p btn-sm" onclick="openNewModal()"><i class="ti ti-plus"></i> Nueva oportunidad</button>':'')
+    +'</div></div>'
     +'<div class="tw">'
     +'<div class="th c7"><span>Proyecto / Expediente</span><span>Estado</span><span>Cliente</span><span>Producto</span><span>Presupuesto TAB</span><span>Precio final</span><span></span></div>'
-    +(opps.length===0?'<div class="empty"><i class="ti ti-inbox" style="font-size:36px;display:block;margin-bottom:10px"></i>Sin expedientes. Añade la primera oportunidad.</div>'
+    +(opps.length===0?'<div class="empty"><i class="ti ti-inbox" style="font-size:36px;display:block;margin-bottom:10px"></i>Sin expedientes.</div>'
     :opps.map(o=>
       '<div class="tr c7" onclick="openSP(\''+o.id+'\')"><div>'
       +'<div style="font-weight:700;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(o.nombre)+'</div>'
@@ -258,16 +301,20 @@ function renderOpps(main){
       +'<div><button class="btn btn-g btn-sm" onclick="event.stopPropagation();openSP(\''+o.id+'\')"><i class="ti ti-eye"></i></button></div></div>'
     ).join(''))
     +'</div>';
+  renderSyncBar();
 }
+
+async function recargar(){await loadOpps();render()}
 
 function openSP(id){S.selId=id;renderSP()}
 function closeSP(){const el=document.getElementById('spbg');if(el)el.remove()}
+
 function renderSP(){
   closeSP();
   const o=S.opps.find(x=>x.id===S.selId);if(!o)return;
   const div=document.createElement('div');div.className='panel-bg';div.id='spbg';
   div.onclick=e=>{if(e.target===div)closeSP()};
-  const maxP=o.competidores.length?Math.max(...o.competidores.map(c=>c.precio)):1;
+  const maxP=o.competidores&&o.competidores.length?Math.max(...o.competidores.map(c=>c.precio)):1;
   div.innerHTML=
     '<div class="panel">'
     +'<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px"><div>'
@@ -293,7 +340,7 @@ function renderSP(){
     +'<div class="kv"><span class="kl">Subdivisión</span><span class="kv-v">'+o.subdivision+'</span></div>'
     +'<div class="kv"><span class="kl">Aprobado PM</span><span class="kv-v">'+(o.aprobado_pm?'<span style="color:var(--ok);font-weight:700">✓ Sí</span>':'<span style="color:var(--warn);font-weight:700">Pendiente</span>')+'</span></div>'
     +(o.fecha_limite?'<div class="kv"><span class="kl">Fecha límite oferta</span><span class="kv-v" style="color:var(--warn);font-weight:700">'+o.fecha_limite+'</span></div>':'')
-    +(o.importe_licitacion?'<div class="kv"><span class="kl">Importe licitación total</span><span class="kv-v">'+fmt(o.importe_licitacion)+'</span></div>':'')
+    +(o.importe_licitacion?'<div class="kv"><span class="kl">Importe licitación</span><span class="kv-v">'+fmt(o.importe_licitacion)+'</span></div>':'')
     +'</div>'
     +(o.descripcion?'<div class="kv" style="margin-top:10px"><span class="kl">Descripción</span><p style="font-size:13px;color:var(--text2);line-height:1.6;margin-top:4px">'+esc(o.descripcion)+'</p></div>':'')
     +'<div style="margin-top:12px;display:flex;gap:7px;flex-wrap:wrap">'
@@ -304,16 +351,21 @@ function renderSP(){
     +'</div></div>'
 
     +'<div class="ps"><div class="pst"><span>Documentos adjuntos</span>'
-    +(can('add')||can('edit_own')?'<label style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:var(--tab)"><i class="ti ti-upload"></i> Subir<input type="file" multiple style="display:none" onchange="addDoc(\''+o.id+'\',this)"></label>':'')
+    +(can('add')||can('edit_own')||can('edit_price')?'<label style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:var(--tab)"><i class="ti ti-upload"></i> Subir<input type="file" multiple style="display:none" onchange="addDoc(\''+o.id+'\',this)"></label>':'')
     +'</div>'
     +((o.docs||[]).length===0?'<div style="font-size:12px;color:var(--text3)">Sin documentos adjuntos</div>'
-    :o.docs.map((d,i)=>'<div class="doc-item"><i class="ti '+fileIcon(d.name)+'" style="font-size:18px;color:var(--tab);flex-shrink:0"></i><span class="doc-name" onclick="dlDoc(\''+o.id+'\','+i+')">'+esc(d.name)+'</span><span class="doc-size">'+d.size+'</span>'+(can('add')||can('edit_own')?'<i class="ti ti-trash fdel" onclick="rmDoc(\''+o.id+'\','+i+')"></i>':'')+'</div>').join(''))
+    :o.docs.map((d,i)=>'<div class="doc-item">'
+      +'<i class="ti '+fileIcon(d.name)+'" style="font-size:18px;color:var(--tab);flex-shrink:0"></i>'
+      +'<span class="doc-name" onclick="window.open(\''+d.url+'\',\'_blank\')">'+esc(d.name)+'</span>'
+      +'<span class="doc-size">'+d.size+'</span>'
+      +(can('add')||can('edit_own')?'<i class="ti ti-trash fdel" onclick="rmDoc(\''+o.id+'\','+i+')"></i>':'')
+      +'</div>').join(''))
     +'</div>'
 
     +'<div class="ps"><div class="pst"><span>Competidores</span>'
     +(can('add_competitor')||can('edit_price')?'<button class="btn btn-g btn-sm" onclick="addComp(\''+o.id+'\')"><i class="ti ti-plus"></i> Añadir</button>':'')
     +'</div>'
-    +((o.competidores||[]).length===0?'<div style="font-size:12px;color:var(--text3)">Sin competidores registrados</div>'
+    +((o.competidores||[]).length===0?'<div style="font-size:12px;color:var(--text3)">Sin competidores</div>'
     :o.competidores.map(c=>'<div class="comp-row"><div style="flex:1;font-size:12px;font-weight:600">'+esc(c.nombre)+(c.ganador?' <i class="ti ti-trophy" style="color:var(--warn);font-size:12px"></i>':'')+'</div><div style="width:90px"><div class="cbar"><div class="cbar-f" style="width:'+Math.round(c.precio/maxP*100)+'%;background:'+(c.ganador?'var(--ok)':'var(--tab)')+'"></div></div></div><div style="font-weight:700;font-size:12px;min-width:90px;text-align:right;color:'+(c.ganador?'var(--ok)':'var(--text2)')+'">'+fmt(c.precio)+'</div></div>').join(''))
     +'</div>'
 
@@ -323,14 +375,46 @@ function renderSP(){
   document.body.appendChild(div);
 }
 
-function savePF(id){const v=parseFloat(document.getElementById('inp-pf').value);if(isNaN(v)){alert('Introduce un número válido');return;}const o=S.opps.find(x=>x.id===id);o.precio_final=v;push(o,'Precio final: '+fmt(v));closeSP();openSP(id)}
-function aprobar(id){const o=S.opps.find(x=>x.id===id);o.aprobado_pm=true;push(o,'PM aprueba');closeSP();openSP(id)}
-function enviarCli(id){const o=S.opps.find(x=>x.id===id);o.estado='Enviada cliente';push(o,'Enviada a '+o.cliente);closeSP();openSP(id)}
-function cambiar(id,n){const o=S.opps.find(x=>x.id===id);o.estado=n;push(o,'Estado: '+n);closeSP();openSP(id);render()}
-function addComp(id){const n=prompt('Nombre del competidor:');if(!n)return;const p=parseFloat(prompt('Precio ofertado (€):'));if(isNaN(p))return;const g=confirm('¿Es el adjudicatario ganador?');const o=S.opps.find(x=>x.id===id);o.competidores.push({nombre:n,precio:p,ganador:g});push(o,'Competidor: '+n+' — '+fmt(p));closeSP();openSP(id)}
-function addDoc(id,inp){const o=S.opps.find(x=>x.id===id);Array.from(inp.files).forEach(f=>{const r=new FileReader();r.onload=ev=>{o.docs.push({name:f.name,size:fmtSz(f.size),type:f.type,dataUrl:ev.target.result});push(o,'Doc: '+f.name);closeSP();openSP(id);};r.readAsDataURL(f);})}
-function rmDoc(id,i){const o=S.opps.find(x=>x.id===id);o.docs.splice(i,1);closeSP();openSP(id)}
-function dlDoc(id,i){const o=S.opps.find(x=>x.id===id);const d=o.docs[i];if(!d.dataUrl){alert('No disponible');return;}const a=document.createElement('a');a.href=d.dataUrl;a.download=d.name;a.click()}
+async function savePF(id){
+  const v=parseFloat(document.getElementById('inp-pf').value);if(isNaN(v)){alert('Número inválido');return;}
+  const o=S.opps.find(x=>x.id===id);o.precio_final=v;push(o,'Precio final: '+fmt(v));
+  await saveOpp(o);closeSP();openSP(id);
+}
+async function aprobar(id){
+  const o=S.opps.find(x=>x.id===id);o.aprobado_pm=true;push(o,'PM aprueba viabilidad técnica');
+  await saveOpp(o);closeSP();openSP(id);
+}
+async function enviarCli(id){
+  const o=S.opps.find(x=>x.id===id);o.estado='Enviada cliente';push(o,'Enviada a '+o.cliente);
+  await saveOpp(o);closeSP();openSP(id);
+}
+async function cambiar(id,n){
+  const o=S.opps.find(x=>x.id===id);o.estado=n;push(o,'Estado: '+n);
+  await saveOpp(o);closeSP();openSP(id);render();
+}
+async function addComp(id){
+  const n=prompt('Nombre del competidor:');if(!n)return;
+  const p=parseFloat(prompt('Precio ofertado (€):'));if(isNaN(p))return;
+  const g=confirm('¿Es el adjudicatario ganador?');
+  const o=S.opps.find(x=>x.id===id);
+  if(!o.competidores)o.competidores=[];
+  o.competidores.push({nombre:n,precio:p,ganador:g});
+  push(o,'Competidor: '+n+' — '+fmt(p));
+  await saveOpp(o);closeSP();openSP(id);
+}
+async function addDoc(id,inp){
+  const o=S.opps.find(x=>x.id===id);
+  if(!o.docs)o.docs=[];
+  for(const f of Array.from(inp.files)){
+    const doc=await uploadDoc(id,f);
+    if(doc){o.docs.push(doc);push(o,'Documento: '+f.name);}
+  }
+  await saveOpp(o);closeSP();openSP(id);
+}
+async function rmDoc(id,i){
+  const o=S.opps.find(x=>x.id===id);o.docs.splice(i,1);
+  await saveOpp(o);closeSP();openSP(id);
+}
 
 function openNewModal(){
   pendingFiles=[];
@@ -351,28 +435,33 @@ function openNewModal(){
     +'<div class="ff"><label>Importe total licitación (€)</label><input type="number" id="nf-il" step="0.01" placeholder="Opcional"></div>'
     +'<div class="ff"><label>Fecha límite oferta</label><input type="date" id="nf-fl"></div>'
     +'<div class="ff full"><label>Descripción / notas internas</label><textarea id="nf-d" placeholder="Objeto del contrato, requerimientos técnicos…"></textarea></div>'
-    +'<div class="ff full"><label>Documentos adjuntos</label>'
+    +'<div class="ff full"><label>Documentos adjuntos (se subirán a Supabase)</label>'
     +'<div class="file-drop" id="fdz" onclick="document.getElementById(\'fi\').click()" ondragover="event.preventDefault();this.classList.add(\'over\')" ondragleave="this.classList.remove(\'over\')" ondrop="hDrop(event)">'
-    +'<i class="ti ti-cloud-upload"></i><p><strong>Haz clic o arrastra archivos aquí</strong></p><p style="margin-top:3px;font-size:11px">PDF, Word, Excel, imágenes</p>'
+    +'<i class="ti ti-cloud-upload"></i><p><strong>Haz clic o arrastra archivos aquí</strong></p><p style="margin-top:3px;font-size:11px">PDF, Word, Excel, imágenes — visibles para todos los roles</p>'
     +'<input type="file" id="fi" multiple style="display:none" onchange="hFI(this)"></div>'
     +'<div class="file-list" id="fl"></div></div>'
     +'</div>'
-    +'<div class="form-actions"><button class="btn btn-g" onclick="closeNM()">Cancelar</button><button class="btn btn-p" onclick="saveNew()"><i class="ti ti-check"></i> Crear expediente</button></div>'
+    +'<div class="form-actions"><button class="btn btn-g" onclick="closeNM()">Cancelar</button><button class="btn btn-p" id="btn-save" onclick="saveNew()"><i class="ti ti-check"></i> Crear expediente</button></div>'
+    +'<div id="save-status"></div>'
     +'</div></div>';
 }
 function closeNM(){document.getElementById('modal-root').innerHTML='';pendingFiles=[]}
-function hFI(inp){Array.from(inp.files).forEach(addPF);inp.value=''}
-function hDrop(e){e.preventDefault();document.getElementById('fdz').classList.remove('over');Array.from(e.dataTransfer.files).forEach(addPF)}
-function addPF(f){const r=new FileReader();r.onload=ev=>{pendingFiles.push({name:f.name,size:fmtSz(f.size),type:f.type,dataUrl:ev.target.result});renderFP();};r.readAsDataURL(f)}
+function hFI(inp){Array.from(inp.files).forEach(f=>pendingFiles.push(f));renderFP();inp.value=''}
+function hDrop(e){e.preventDefault();document.getElementById('fdz').classList.remove('over');Array.from(e.dataTransfer.files).forEach(f=>pendingFiles.push(f));renderFP()}
 function rmPF(i){pendingFiles.splice(i,1);renderFP()}
-function renderFP(){const el=document.getElementById('fl');if(!el)return;el.innerHTML=pendingFiles.map((f,i)=>'<div class="file-item"><i class="ti '+fileIcon(f.name)+'" style="font-size:18px;color:var(--tab);flex-shrink:0"></i><span class="fname">'+esc(f.name)+'</span><span class="fsize">'+f.size+'</span><i class="ti ti-x fdel" onclick="rmPF('+i+')"></i></div>').join('')}
-function saveNew(){
+function renderFP(){
+  const el=document.getElementById('fl');if(!el)return;
+  el.innerHTML=pendingFiles.map((f,i)=>'<div class="file-item"><i class="ti '+fileIcon(f.name)+'" style="font-size:18px;color:var(--tab);flex-shrink:0"></i><span class="fname">'+esc(f.name)+'</span><span class="fsize">'+fmtSz(f.size)+'</span><i class="ti ti-x fdel" onclick="rmPF('+i+')"></i></div>').join('')
+}
+async function saveNew(){
   const n=(document.getElementById('nf-n').value||'').trim();
   const e=(document.getElementById('nf-e').value||'').trim();
-  if(!n){alert('El nombre es obligatorio.');document.getElementById('nf-n').focus();return;}
-  if(!e){alert('El expediente es obligatorio.');document.getElementById('nf-e').focus();return;}
-  const id='LIT-'+(String(S.opps.length+1).padStart(3,'0'));
-  S.opps.unshift({id,nombre:n,expediente:e,
+  if(!n){alert('El nombre es obligatorio.');return;}
+  if(!e){alert('El expediente es obligatorio.');return;}
+  document.getElementById('btn-save').disabled=true;
+  document.getElementById('save-status').innerHTML='<div style="font-size:12px;color:var(--text3);margin-top:10px;text-align:center"><i class="ti ti-loader"></i> Guardando y subiendo archivos...</div>';
+  const id='LIT-'+(String(Date.now()).slice(-6));
+  const newOpp={id,nombre:n,expediente:e,
     plataforma:document.getElementById('nf-pl').value,tipo:document.getElementById('nf-t').value,
     fecha:document.getElementById('nf-f').value,organo:(document.getElementById('nf-o').value||'').trim(),
     cliente:document.getElementById('nf-c').value,estado:'Detectada',
@@ -381,9 +470,15 @@ function saveNew(){
     importe_licitacion:parseFloat(document.getElementById('nf-il').value)||null,
     fecha_limite:document.getElementById('nf-fl').value||null,
     precio_final:null,aprobado_pm:false,descripcion:(document.getElementById('nf-d').value||'').trim(),
-    docs:[...pendingFiles],competidores:[],
+    docs:[],competidores:[],
     timeline:[{fecha:new Date().toISOString().slice(0,10),txt:'Creado por '+ROLES[S.user].label}]
-  });
+  };
+  for(const f of pendingFiles){
+    const doc=await uploadDoc(id,f);
+    if(doc)newOpp.docs.push(doc);
+  }
+  await saveOpp(newOpp);
+  S.opps.unshift(newOpp);
   closeNM();render();setTimeout(()=>openSP(id),80);
 }
 
@@ -425,29 +520,18 @@ function renderExport(main){
     +'<div class="exp-row"><i class="ti ti-database" style="color:var(--tab);font-size:18px"></i><span>Backup completo (JSON)</span><button class="btn btn-g btn-sm" onclick="expJSON()">Exportar JSON</button></div>'
     +'</div>';
 }
-function expCSV(f){let opps=S.opps;if(f==='ganadas')opps=opps.filter(o=>o.estado==='Ganada');if(f==='cliente'){const c=document.getElementById('exp-c').value;opps=opps.filter(o=>o.cliente===c);}const h=['ID','Nombre','Expediente','Plataforma','Tipo','Fecha','Órgano','Cliente','Estado','Producto','Subdivisión','Presupuesto TAB','Importe Licitación','Precio Final','Aprobado PM','Nº Docs'];const rows=opps.map(o=>[o.id,'"'+o.nombre+'"',o.expediente,o.plataforma,o.tipo,o.fecha,'"'+(o.organo||'')+'"',o.cliente,o.estado,o.producto,o.subdivision,o.importe||'',o.importe_licitacion||'',o.precio_final||'',o.aprobado_pm?'Sí':'No',(o.docs||[]).length]);const csv=[h.join(','),...rows.map(r=>r.join(','))].join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));a.download='tabspain_'+f+'_'+new Date().toISOString().slice(0,10)+'.csv';a.click()}
-function expJSON(){const exp=S.opps.map(o=>({...o,docs:(o.docs||[]).map(d=>({name:d.name,size:d.size}))}));const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(exp,null,2)],{type:'application/json'}));a.download='tabspain_backup_'+new Date().toISOString().slice(0,10)+'.json';a.click()}
-
-function renderAcceso(main){
-  main.innerHTML=
-    '<div class="sec-title"><i class="ti ti-brand-github" style="color:var(--tab)"></i> Publicar en GitHub Pages</div>'
-    +'<div class="info-box"><div class="info-box-title"><i class="ti ti-brand-github"></i> Pasos para publicar</div><ol>'
-    +'<li>Descarga el archivo con el botón de abajo</li>'
-    +'<li>Ve a <a href="https://github.com/new" target="_blank" style="color:var(--tab);font-weight:700">github.com/new</a> → repositorio <code>tab-litio-tracker</code> (Public)</li>'
-    +'<li><strong>Add file → Upload files</strong> → arrastra <code>index.html</code> → <strong>Commit changes</strong></li>'
-    +'<li><strong>Settings → Pages → Branch: main → / (root) → Save</strong></li>'
-    +'<li>En ~1 min: <code>https://robertonavarroruiz-dotcom.github.io/tab-litio-tracker</code></li>'
-    +'</ol></div>'
-    +'<div class="info-box green"><div class="info-box-title"><i class="ti ti-info-circle"></i> Nota sobre datos</div><ol>'
-    +'<li>Los datos se guardan en el navegador local de cada usuario</li>'
-    +'<li>Para compartir entre usuarios: exporta JSON y compártelo</li>'
-    +'<li>Para base de datos compartida en tiempo real → podemos conectar Supabase</li>'
-    +'</ol></div>'
-    +'<div style="display:flex;gap:10px;flex-wrap:wrap">'
-    +'<button class="btn btn-p" onclick="dlHTML()"><i class="ti ti-download"></i> Descargar index.html</button>'
-    +'<a href="https://github.com/new" target="_blank" class="btn btn-g"><i class="ti ti-brand-github"></i> Crear repositorio</a></div>';
+function expCSV(f){
+  let opps=S.opps;
+  if(f==='ganadas')opps=opps.filter(o=>o.estado==='Ganada');
+  if(f==='cliente'){const c=document.getElementById('exp-c').value;opps=opps.filter(o=>o.cliente===c);}
+  const h=['ID','Nombre','Expediente','Plataforma','Tipo','Fecha','Órgano','Cliente','Estado','Producto','Subdivisión','Presupuesto TAB','Importe Licitación','Precio Final','Aprobado PM','Nº Docs'];
+  const rows=opps.map(o=>[o.id,'"'+o.nombre+'"',o.expediente,o.plataforma,o.tipo,o.fecha,'"'+(o.organo||'')+'"',o.cliente,o.estado,o.producto,o.subdivision,o.importe||'',o.importe_licitacion||'',o.precio_final||'',o.aprobado_pm?'Sí':'No',(o.docs||[]).length]);
+  const csv=[h.join(','),...rows.map(r=>r.join(','))].join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));a.download='tabspain_'+f+'_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
 }
-function dlHTML(){const h=document.documentElement.outerHTML;const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['<!DOCTYPE html>'+h],{type:'text/html;charset=utf-8'}));a.download='index.html';a.click()}
+function expJSON(){
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(S.opps,null,2)],{type:'application/json'}));a.download='tabspain_backup_'+new Date().toISOString().slice(0,10)+'.json';a.click();
+}
 
 render();
 </script>
