@@ -47,10 +47,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:13
 .toolbar input{min-width:200px}
 .tw{background:#fff;border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:var(--sh)}
 .th{padding:10px 16px;background:var(--bg3);border-bottom:1px solid var(--border);display:grid;gap:8px;font-size:11px;color:var(--text3);font-weight:700;letter-spacing:.4px;text-transform:uppercase}
-.tr{padding:12px 16px;border-bottom:1px solid var(--border);display:grid;gap:8px;align-items:center;cursor:pointer;transition:background .1s}
+.tr{padding:10px 16px;border-bottom:1px solid var(--border);display:grid;gap:8px;align-items:start;cursor:pointer;transition:background .1s;min-height:56px}
 .tr:last-child{border-bottom:none}
 .tr:hover{background:var(--tab-l)}
-.c7{grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr 90px}
+.c7{grid-template-columns:3fr 1fr 1fr 1fr 1.2fr 1.2fr 90px}
 .badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap}
 .bd{background:#EDE9FE;color:#5B21B6;border:1px solid #C4B5FD}
 .br{background:#FEF3C7;color:#92400E;border:1px solid #FCD34D}
@@ -275,12 +275,12 @@ function renderOpps(main){
     +(opps.length===0?'<div class="empty"><i class="ti ti-inbox" style="font-size:36px;display:block;margin-bottom:10px"></i>Sin expedientes. Pulsa "Nueva oportunidad".</div>'
     :opps.map(o=>
       '<div class="tr c7" onclick="openSP(\''+o.id+'\')"><div>'
-      +'<div style="font-weight:700;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(o.nombre)+'</div>'
+      +'<div style="font-weight:700;font-size:12px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.4">'+esc(o.nombre)+'</div>'
       +'<div style="color:var(--text3);font-size:11px;margin-top:2px">'+esc(o.expediente)+' · '+esc(o.plataforma)+' · '+o.fecha+'</div>'
       +'</div><div>'+badge(o.estado)+'</div>'
       +'<div><span class="chip">'+o.cliente+'</span></div>'
       +'<div><div style="font-size:12px;font-weight:600">'+esc(o.producto)+'</div>'+(o.subdivision==='HV'?'<span class="badge bh" style="margin-top:2px">HV</span>':'')+'</div>'
-      +'<div style="font-weight:700;font-size:13px;color:var(--tab)">'+fmt(o.importe)+'</div>'
+      +'<div style="font-weight:700;font-size:13px;color:var(--tab);padding-top:2px">'+fmt(o.importe)+'</div>'
       +'<div style="font-weight:700;font-size:13px;color:'+(o.estado==='Ganada'?'var(--ok)':o.estado==='Perdida'?'var(--red)':'var(--text3)')+'">'+fmt(o.precio_final)+'</div>'
       +'<div style="display:flex;gap:4px">'
       +(can('add')||can('edit_own')||can('edit_tech')||can('edit_price')?'<button class="btn btn-g btn-sm" title="Editar" onclick="event.stopPropagation();openModal(\''+o.id+'\')"><i class="ti ti-edit"></i></button>':'')
