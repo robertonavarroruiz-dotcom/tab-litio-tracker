@@ -50,7 +50,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:13
 .tr{padding:10px 16px;border-bottom:1px solid var(--border);display:grid;gap:8px;align-items:start;cursor:pointer;transition:background .1s;min-height:56px}
 .tr:last-child{border-bottom:none}
 .tr:hover{background:var(--tab-l)}
-.c7{grid-template-columns:3fr 1fr 1fr 1fr 1.2fr 1.2fr 90px}
+.c7{grid-template-columns:2.5fr 1fr 0.8fr 0.9fr 1fr 1fr 1fr 100px}
 .badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap}
 .bd{background:#EDE9FE;color:#5B21B6;border:1px solid #C4B5FD}
 .br{background:#FEF3C7;color:#92400E;border:1px solid #FCD34D}
@@ -139,7 +139,7 @@ const CLD_PRESET='tab-litio';
 
 const ROLES={
   detector:{label:'Roberto · Detector',perms:['view','add','edit_own']},
-  pm:{label:'PM Litio',perms:['view','approve','edit_tech']},
+  pm:{label:'Iván · PM Litio',perms:['view','approve','edit_tech']},
   hv:{label:'HV · Responsable',perms:['view','edit_price','add_competitor','approve']},
 };
 const ESTADOS=['Detectada','Revisión PM','Enviada cliente','Ganada','Perdida'];
@@ -222,7 +222,7 @@ function renderLogin(){
     +'<select id="lr" style="width:100%;background:var(--bg3);border:2px solid var(--border2);border-radius:8px;padding:10px 12px;color:var(--text);font-family:var(--font);font-size:13px;outline:none">'
     +'<option value="">— Seleccionar perfil —</option>'
     +'<option value="detector">Roberto · Detector de oportunidades</option>'
-    +'<option value="pm">PM Litio · Product Manager</option>'
+    +'<option value="pm">Iván · PM Litio</option>'
     +'<option value="hv">HV · Responsable High Voltage</option>'
     +'</select></div>'
     +'<button class="btn btn-p btn-full" onclick="doLogin()"><i class="ti ti-login"></i> Entrar</button>'
@@ -271,7 +271,7 @@ function renderOpps(main){
     +(can('add')?'<button class="btn btn-p btn-sm" onclick="openModal(null)"><i class="ti ti-plus"></i> Nueva oportunidad</button>':'')
     +'</div></div>'
     +'<div class="tw">'
-    +'<div class="th c7"><span>Proyecto / Expediente</span><span>Estado</span><span>Cliente</span><span>Producto</span><span>Presupuesto TAB</span><span>Precio final</span><span></span></div>'
+    +'<div class="th c7"><span>Proyecto / Expediente</span><span>Estado</span><span>Cliente</span><span>Producto</span><span>Licitación</span><span>Presupuesto TAB</span><span>Precio final</span><span></span></div>'
     +(opps.length===0?'<div class="empty"><i class="ti ti-inbox" style="font-size:36px;display:block;margin-bottom:10px"></i>Sin expedientes. Pulsa "Nueva oportunidad".</div>'
     :opps.map(o=>
       '<div class="tr c7" onclick="openSP(\''+o.id+'\')"><div>'
@@ -280,7 +280,7 @@ function renderOpps(main){
       +'</div><div>'+badge(o.estado)+'</div>'
       +'<div><span class="chip">'+o.cliente+'</span></div>'
       +'<div><div style="font-size:12px;font-weight:600">'+esc(o.producto)+'</div>'+(o.subdivision==='HV'?'<span class="badge bh" style="margin-top:2px">HV</span>':'')+'</div>'
-      +'<div style="font-weight:700;font-size:13px;color:var(--tab);padding-top:2px">'+fmt(o.importe)+'</div>'
+      +'<div style="font-weight:700;font-size:13px;color:var(--text2);padding-top:2px">'+fmt(o.importe_licitacion)+'</div>'      +'<div style="font-weight:700;font-size:13px;color:var(--tab);padding-top:2px">'+fmt(o.importe)+'</div>'
       +'<div style="font-weight:700;font-size:13px;color:'+(o.estado==='Ganada'?'var(--ok)':o.estado==='Perdida'?'var(--red)':'var(--text3)')+'">'+fmt(o.precio_final)+'</div>'
       +'<div style="display:flex;gap:4px">'
       +(can('add')||can('edit_own')||can('edit_tech')||can('edit_price')?'<button class="btn btn-g btn-sm" title="Editar" onclick="event.stopPropagation();openModal(\''+o.id+'\')"><i class="ti ti-edit"></i></button>':'')
@@ -334,6 +334,7 @@ function renderSP(){
     +(o.importe_licitacion?'<div class="kv"><span class="kl">Importe licitación</span><span class="kv-v">'+fmt(o.importe_licitacion)+'</span></div>':'')
     +'</div>'
     +(o.descripcion?'<div class="kv" style="margin-top:10px"><span class="kl">Descripción</span><p style="font-size:13px;color:var(--text2);line-height:1.6;margin-top:4px">'+esc(o.descripcion)+'</p></div>':'')
+    +(o.url_licitacion?'<div class="kv" style="margin-top:10px"><span class="kl">🔗 Pliego / Proyecto</span><a href="'+esc(o.url_licitacion)+'" target="_blank" style="display:inline-flex;align-items:center;gap:5px;margin-top:4px;color:var(--tab);font-size:13px;font-weight:600;word-break:break-all"><i class="ti ti-external-link"></i> Abrir enlace de licitación</a></div>':'')
     +'<div style="margin-top:12px;display:flex;gap:7px;flex-wrap:wrap">'
     +(can('approve')&&!o.aprobado_pm?'<button class="btn btn-p btn-sm" onclick="aprobar(\''+o.id+'\')"><i class="ti ti-check"></i> Aprobar PM</button>':'')
     +(can('approve')&&o.aprobado_pm&&o.estado==='Revisión PM'?'<button class="btn btn-p btn-sm" onclick="enviarCli(\''+o.id+'\')"><i class="ti ti-send"></i> Enviada a cliente</button>':'')
@@ -437,6 +438,7 @@ function openModal(editId){
     +'<div class="ff"><label>Importe total licitación (€)</label><input type="number" id="nf-il" step="0.01" value="'+(o&&o.importe_licitacion?o.importe_licitacion:'')+'"></div>'
     +'<div class="ff"><label>Fecha límite oferta</label><input type="date" id="nf-fl" value="'+(o&&o.fecha_limite?o.fecha_limite:'')+'"></div>'
     +'<div class="ff full"><label>Descripción / notas internas</label><textarea id="nf-d">'+(o?esc(o.descripcion||''):'')+'</textarea></div>'
+    +'<div class="ff full"><label>🔗 URL del pliego / proyecto (enlace directo)</label><input id="nf-url" type="url" placeholder="https://contractaciopublica.cat/... o PLACE" value="'+(o?esc(o.url_licitacion||''):'')+'" ></div>'
     +'<div class="ff full"><label>Precio final cliente (€)</label><input type="number" id="nf-pf" step="0.01" value="'+(o&&o.precio_final?o.precio_final:'')+'" placeholder="Introducir cuando se conozca el resultado"></div>'
     +'</div>'
     +'<div class="form-actions"><button class="btn btn-g" onclick="closeNM()">Cancelar</button><button class="btn btn-p" id="btn-save" onclick="saveModal(\''+( isEdit?editId:'')+'\')"><i class="ti ti-check"></i> '+(isEdit?'Guardar cambios':'Crear expediente')+'</button></div>'
@@ -471,6 +473,7 @@ async function saveModal(editId){
     precio_final:parseFloat(document.getElementById('nf-pf').value)||null,
     aprobado_pm:existing?existing.aprobado_pm:false,
     descripcion:(document.getElementById('nf-d').value||'').trim(),
+    url_licitacion:(document.getElementById('nf-url').value||'').trim(),
     docs:existing?existing.docs:[],
     competidores:existing?existing.competidores:[],
     timeline:existing?[...existing.timeline]:[{fecha:new Date().toISOString().slice(0,10),txt:'Creado por '+ROLES[S.user].label}]
