@@ -537,21 +537,166 @@ function renderDash(main){
 function renderExport(main){
   main.innerHTML=
     '<div class="sec-title"><i class="ti ti-download" style="color:var(--tab)"></i> Exportar datos</div>'
-    +'<div class="tw" style="max-width:460px;padding:20px"><div class="pst" style="margin-bottom:12px"><span>Opciones</span></div>'
-    +'<div class="exp-row"><i class="ti ti-file-spreadsheet" style="color:var(--ok);font-size:18px"></i><span>Todas las oportunidades (CSV)</span><button class="btn btn-p btn-sm" onclick="expCSV(\'all\')">Exportar</button></div>'
-    +'<div class="exp-row"><i class="ti ti-trophy" style="color:var(--warn);font-size:18px"></i><span>Solo ganadas</span><button class="btn btn-g btn-sm" onclick="expCSV(\'ganadas\')">Exportar</button></div>'
-    +'<div class="exp-row"><i class="ti ti-database" style="color:var(--tab);font-size:18px"></i><span>Backup completo (JSON)</span><button class="btn btn-g btn-sm" onclick="expJSON()">Exportar JSON</button></div>'
+    +'<div class="tw" style="max-width:480px;padding:20px"><div class="pst" style="margin-bottom:12px"><span>Opciones de exportación</span></div>'
+    +'<div class="exp-row"><i class="ti ti-file-spreadsheet" style="color:var(--ok);font-size:20px"></i><div style="flex:1"><span style="font-weight:600;display:block">Todas las oportunidades</span><span style="font-size:11px;color:var(--text3)">Excel .xlsx con formato profesional</span></div><button class="btn btn-p btn-sm" onclick="expXLSX(\'all\')"><i class="ti ti-download"></i> Excel</button></div>'
+    +'<div class="exp-row"><i class="ti ti-trophy" style="color:var(--warn);font-size:20px"></i><div style="flex:1"><span style="font-weight:600;display:block">Solo oportunidades ganadas</span><span style="font-size:11px;color:var(--text3)">Excel .xlsx filtrado</span></div><button class="btn btn-g btn-sm" onclick="expXLSX(\'ganadas\')"><i class="ti ti-download"></i> Excel</button></div>'
+    +'<div class="exp-row"><i class="ti ti-database" style="color:var(--tab);font-size:20px"></i><div style="flex:1"><span style="font-weight:600;display:block">Backup completo</span><span style="font-size:11px;color:var(--text3)">JSON con todos los datos</span></div><button class="btn btn-g btn-sm" onclick="expJSON()"><i class="ti ti-download"></i> JSON</button></div>'
     +'</div>';
 }
-function expCSV(f){
-  let opps=S.opps;if(f==='ganadas')opps=opps.filter(o=>o.estado==='Ganada');
-  const h=['ID','Nombre','Expediente','Plataforma','Tipo','Fecha','Órgano','Cliente','Estado','Producto','Subdivisión','Presupuesto TAB','Importe Licitación','Precio Final','Aprobado PM','Nº Docs'];
-  const rows=opps.map(o=>[o.id,'"'+o.nombre+'"',o.expediente,o.plataforma,o.tipo,o.fecha,'"'+(o.organo||'')+'"',o.cliente,o.estado,o.producto,o.subdivision,o.importe||'',o.importe_licitacion||'',o.precio_final||'',o.aprobado_pm?'Sí':'No',(o.docs||[]).length]);
-  const csv=[h.join(','),...rows.map(r=>r.join(','))].join('\n');
-  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));a.download='tabspain_'+f+'_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
+
+async function expXLSX(filtro){
+  // Cargar SheetJS desde CDN si no está cargado
+  if(!window.XLSX){
+    await new Promise((res,rej)=>{
+      const s=document.createElement('script');
+      s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+      s.onload=res;s.onerror=rej;
+      document.head.appendChild(s);
+    });
+  }
+
+  let opps=S.opps;
+  if(filtro==='ganadas') opps=opps.filter(o=>o.estado==='Ganada');
+
+  const fecha=new Date().toLocaleDateString('es-ES');
+
+  // Construir datos con cabecera
+  const cabecera=[
+    'ID','Nombre del Proyecto','Expediente','Plataforma','Tipo',
+    'Fecha Detección','Fecha Límite','Órgano Contratante','Cliente TAB',
+    'Estado','Producto','Subdivisión','Aprobado PM',
+    'Presupuesto TAB (€)','Importe Licitación (€)','Precio Final (€)',
+    'Descripción','URL Licitación','Nº Documentos','Nº Competidores'
+  ];
+
+  const filas=opps.map(o=>[
+    o.id,
+    o.nombre||'',
+    o.expediente||'',
+    o.plataforma||'',
+    o.tipo||'',
+    o.fecha||'',
+    o.fecha_limite||'',
+    o.organo||'',
+    o.cliente||'',
+    o.estado||'',
+    o.producto||'',
+    o.subdivision||'',
+    o.aprobado_pm?'Sí':'No',
+    o.importe||'',
+    o.importe_licitacion||'',
+    o.precio_final||'',
+    o.descripcion||'',
+    o.url_licitacion||'',
+    (o.docs||[]).length,
+    (o.competidores||[]).length
+  ]);
+
+  const datos=[cabecera,...filas];
+
+  // Crear hoja
+  const ws=XLSX.utils.aoa_to_sheet(datos);
+
+  // Anchos de columna
+  ws['!cols']=[
+    {wch:14},{wch:55},{wch:20},{wch:22},{wch:10},
+    {wch:14},{wch:14},{wch:35},{wch:10},
+    {wch:16},{wch:22},{wch:12},{wch:12},
+    {wch:18},{wch:20},{wch:16},
+    {wch:40},{wch:40},{wch:10},{wch:12}
+  ];
+
+  // Congelar primera fila
+  ws['!freeze']={xSplit:0,ySplit:1};
+
+  // Estilo de cabecera (fondo azul TAB, texto blanco, negrita)
+  const range=XLSX.utils.decode_range(ws['!ref']);
+  for(let c=range.s.c;c<=range.e.c;c++){
+    const cell=XLSX.utils.encode_cell({r:0,c});
+    if(!ws[cell])continue;
+    ws[cell].s={
+      fill:{fgColor:{rgb:'00579C'}},
+      font:{bold:true,color:{rgb:'FFFFFF'},sz:11},
+      alignment:{horizontal:'center',vertical:'center',wrapText:true},
+      border:{bottom:{style:'medium',color:{rgb:'003B7A'}}}
+    };
+  }
+
+  // Estilo filas de datos (alternado, bordes, alineación)
+  for(let r=1;r<=range.e.r;r++){
+    const esPar=r%2===0;
+    const bgColor=esPar?'EEF1F6':'FFFFFF';
+    for(let c=range.s.c;c<=range.e.c;c++){
+      const cell=XLSX.utils.encode_cell({r,c});
+      if(!ws[cell])ws[cell]={t:'z',v:''};
+      ws[cell].s={
+        fill:{fgColor:{rgb:bgColor}},
+        font:{sz:10},
+        alignment:{vertical:'center',wrapText:c===1||c===16||c===17},
+        border:{
+          top:{style:'thin',color:{rgb:'DDE3EC'}},
+          bottom:{style:'thin',color:{rgb:'DDE3EC'}},
+          left:{style:'thin',color:{rgb:'DDE3EC'}},
+          right:{style:'thin',color:{rgb:'DDE3EC'}}
+        }
+      };
+      // Columnas numéricas — formato euro
+      if([13,14,15].includes(c)&&ws[cell].v!==''){
+        ws[cell].z='"€"#,##0.00';
+      }
+      // Estado con color
+      if(c===9&&ws[cell].v){
+        const colores={'Ganada':'1a7a45','Perdida':'991B1B','Enviada cliente':'1D4ED8','Revisión PM':'92400E','Detectada':'5B21B6'};
+        const col=colores[ws[cell].v];
+        if(col)ws[cell].s.font={...ws[cell].s.font,color:{rgb:col},bold:true};
+      }
+    }
+  }
+
+  // Crear libro
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'Oportunidades TAB');
+
+  // Hoja resumen
+  const ganadas=S.opps.filter(o=>o.estado==='Ganada').length;
+  const perdidas=S.opps.filter(o=>o.estado==='Perdida').length;
+  const enviadas=S.opps.filter(o=>o.estado==='Enviada cliente').length;
+  const volG=S.opps.filter(o=>o.estado==='Ganada').reduce((a,b)=>a+(b.precio_final||0),0);
+  const presup=S.opps.reduce((a,b)=>a+(b.importe||0),0);
+
+  const resumen=[
+    ['TAB Spain · División Litio HV — Resumen de oportunidades'],
+    ['Generado el',fecha],[''],
+    ['MÉTRICAS GENERALES',''],
+    ['Total expedientes',S.opps.length],
+    ['Ganadas',ganadas],
+    ['Perdidas',perdidas],
+    ['Enviadas a cliente',enviadas],
+    ['En revisión PM',S.opps.filter(o=>o.estado==='Revisión PM').length],
+    ['Detectadas',S.opps.filter(o=>o.estado==='Detectada').length],
+    [''],
+    ['IMPORTES',''],
+    ['Total presupuestado TAB (€)',presup],
+    ['Volumen ganado (€)',volG],
+    [''],
+    ['CLIENTES',''],
+    ['AZIMUT',S.opps.filter(o=>o.cliente==='AZIMUT').length],
+    ['RICARD',S.opps.filter(o=>o.cliente==='RICARD').length],
+  ];
+  const ws2=XLSX.utils.aoa_to_sheet(resumen);
+  ws2['!cols']=[{wch:35},{wch:20}];
+  XLSX.utils.book_append_sheet(wb,ws2,'Resumen');
+
+  // Descargar
+  const nombreArchivo='TABSpain_Litio_'+filtro+'_'+new Date().toISOString().slice(0,10)+'.xlsx';
+  XLSX.writeFile(wb,nombreArchivo);
 }
+
 function expJSON(){
-  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(S.opps,null,2)],{type:'application/json'}));a.download='tabspain_backup_'+new Date().toISOString().slice(0,10)+'.json';a.click();
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(S.opps,null,2)],{type:'application/json'}));
+  a.download='tabspain_backup_'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();
 }
 
 render();
