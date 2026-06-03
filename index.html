@@ -454,7 +454,6 @@ async function uploadCld(id, input){
       o.docs.push({
         name:file.name,
         url:data.secure_url,
-        resource_type:resourceType,
         size:fmtSzLocal(file.size),
         public_id:data.public_id
       });
