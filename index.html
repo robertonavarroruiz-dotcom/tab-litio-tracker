@@ -409,24 +409,28 @@ async function addComp(id){
   await jbSave();closeSP();openSP(id);
 }
 function getResourceType(file){
-  const ext=(file.name||'').split('.').pop().toLowerCase();
-  const imageTypes=['jpg','jpeg','png','gif','webp','svg','bmp'];
-  const videoTypes=['mp4','mov','avi','mkv','webm'];
-  if(imageTypes.includes(ext))return'image';
-  if(videoTypes.includes(ext))return'video';
-  return'raw'; // PDF, Word, Excel, etc → raw
+  // Cloudinary acepta PDFs como 'image' con fl_attachment para descargar
+  // Usamos siempre 'auto' y dejamos que Cloudinary decida
+  return 'auto';
 }
 
 function abrirDoc(url, nombre){
-  // Corregir URL si Cloudinary la guardó como /image/upload/ pero es un PDF u otro raw
+  // Cloudinary guarda PDFs bajo /image/upload/ — usar fl_attachment para forzar descarga directa
   const ext=(nombre||'').split('.').pop().toLowerCase();
-  const rawTypes=['pdf','doc','docx','xls','xlsx','ppt','pptx','txt','zip'];
-  let finalUrl=url;
-  if(rawTypes.includes(ext)){
-    // Asegurar que usa /raw/upload/ en lugar de /image/upload/
-    finalUrl=url.replace('/image/upload/','/raw/upload/').replace('/video/upload/','/raw/upload/');
+  const docTypes=['pdf','doc','docx','xls','xlsx','ppt','pptx','txt','zip','rar'];
+  if(docTypes.includes(ext)){
+    // Insertar fl_attachment en la URL para forzar descarga del navegador
+    const dlUrl=url.replace('/upload/','/upload/fl_attachment/');
+    const a=document.createElement('a');
+    a.href=dlUrl;
+    a.download=nombre;
+    a.target='_blank';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  } else {
+    window.open(url,'_blank');
   }
-  window.open(finalUrl,'_blank');
 }
 
 async function uploadCld(id, input){
@@ -437,12 +441,11 @@ async function uploadCld(id, input){
   for(const file of files){
     if(statusEl)statusEl.innerHTML='<i class="ti ti-loader" style="animation:pulse 1s infinite"></i> Subiendo '+file.name+'...';
     try{
-      const resourceType=getResourceType(file);
       const fd=new FormData();
       fd.append('file',file);
       fd.append('upload_preset',CLD_PRESET);
-      // Usar el endpoint correcto según tipo de archivo
-      const endpoint='https://api.cloudinary.com/v1_1/'+CLD_CLOUD+'/'+resourceType+'/upload';
+      // Siempre usar auto/upload — Cloudinary detecta el tipo
+      const endpoint='https://api.cloudinary.com/v1_1/'+CLD_CLOUD+'/auto/upload';
       const res=await fetch(endpoint,{method:'POST',body:fd});
       if(!res.ok){const e=await res.text();console.error('CLD error:',e);alert('Error subiendo '+file.name+'.\nDetalle: '+e);continue;}
       const data=await res.json();
