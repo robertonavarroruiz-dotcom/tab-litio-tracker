@@ -408,16 +408,25 @@ async function addComp(id){
   o.competidores.push({nombre:n,precio:p,ganador:g});push(o,'Competidor: '+n+' — '+fmt(p));
   await jbSave();closeSP();openSP(id);
 }
+function getResourceType(file){
+  const ext=(file.name||'').split('.').pop().toLowerCase();
+  const imageTypes=['jpg','jpeg','png','gif','webp','svg','bmp'];
+  const videoTypes=['mp4','mov','avi','mkv','webm'];
+  if(imageTypes.includes(ext))return'image';
+  if(videoTypes.includes(ext))return'video';
+  return'raw'; // PDF, Word, Excel, etc → raw
+}
+
 function abrirDoc(url, nombre){
-  // Para PDFs de Cloudinary, transformar URL para visualización directa
-  const isPdf=(nombre||'').toLowerCase().endsWith('.pdf');
-  if(isPdf){
-    // Usar fl_inline para abrir en visor del navegador sin redirigir al visor de Cloudinary
-    const viewUrl=url.replace('/upload/','/upload/fl_inline/');
-    window.open(viewUrl,'_blank');
-  } else {
-    window.open(url,'_blank');
+  // Corregir URL si Cloudinary la guardó como /image/upload/ pero es un PDF u otro raw
+  const ext=(nombre||'').split('.').pop().toLowerCase();
+  const rawTypes=['pdf','doc','docx','xls','xlsx','ppt','pptx','txt','zip'];
+  let finalUrl=url;
+  if(rawTypes.includes(ext)){
+    // Asegurar que usa /raw/upload/ en lugar de /image/upload/
+    finalUrl=url.replace('/image/upload/','/raw/upload/').replace('/video/upload/','/raw/upload/');
   }
+  window.open(finalUrl,'_blank');
 }
 
 async function uploadCld(id, input){
@@ -426,17 +435,26 @@ async function uploadCld(id, input){
   const statusEl=document.getElementById('upload-status-'+id);
   const o=S.opps.find(x=>x.id===id);if(!o.docs)o.docs=[];
   for(const file of files){
-    if(statusEl)statusEl.textContent='Subiendo '+file.name+'...';
+    if(statusEl)statusEl.innerHTML='<i class="ti ti-loader" style="animation:pulse 1s infinite"></i> Subiendo '+file.name+'...';
     try{
+      const resourceType=getResourceType(file);
       const fd=new FormData();
       fd.append('file',file);
       fd.append('upload_preset',CLD_PRESET);
-      fd.append('resource_type','auto');
-      const res=await fetch('https://api.cloudinary.com/v1_1/'+CLD_CLOUD+'/auto/upload',{method:'POST',body:fd});
-      if(!res.ok){const e=await res.text();alert('Error subiendo '+file.name+': '+e);continue;}
+      // Usar el endpoint correcto según tipo de archivo
+      const endpoint='https://api.cloudinary.com/v1_1/'+CLD_CLOUD+'/'+resourceType+'/upload';
+      const res=await fetch(endpoint,{method:'POST',body:fd});
+      if(!res.ok){const e=await res.text();console.error('CLD error:',e);alert('Error subiendo '+file.name+'.\nDetalle: '+e);continue;}
       const data=await res.json();
       const fmtSzLocal=b=>b<1024?b+' B':b<1048576?Math.round(b/1024)+' KB':(b/1048576).toFixed(1)+' MB';
-      o.docs.push({name:file.name,url:data.secure_url,size:fmtSzLocal(file.size),public_id:data.public_id});
+      // Guardar resource_type para poder construir URLs correctas
+      o.docs.push({
+        name:file.name,
+        url:data.secure_url,
+        resource_type:resourceType,
+        size:fmtSzLocal(file.size),
+        public_id:data.public_id
+      });
       push(o,'Documento subido: '+file.name);
     }catch(e){alert('Error: '+e.message);}
   }
