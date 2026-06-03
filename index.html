@@ -415,14 +415,14 @@ function getResourceType(file){
 }
 
 function abrirDoc(url, nombre){
-  // Cloudinary guarda PDFs bajo /image/upload/ — usar fl_attachment para forzar descarga directa
   const ext=(nombre||'').split('.').pop().toLowerCase();
   const docTypes=['pdf','doc','docx','xls','xlsx','ppt','pptx','txt','zip','rar'];
   if(docTypes.includes(ext)){
-    // Insertar fl_attachment en la URL para forzar descarga del navegador
-    const dlUrl=url.replace('/upload/','/upload/fl_attachment/');
+    // PDFs subidos a /raw/upload/ — abrir directamente, el navegador gestiona la descarga
+    // Corregir URL por si viene de subida antigua con /image/upload/
+    const fixedUrl=url.replace('/image/upload/','/raw/upload/');
     const a=document.createElement('a');
-    a.href=dlUrl;
+    a.href=fixedUrl;
     a.download=nombre;
     a.target='_blank';
     document.body.appendChild(a);
@@ -444,8 +444,10 @@ async function uploadCld(id, input){
       const fd=new FormData();
       fd.append('file',file);
       fd.append('upload_preset',CLD_PRESET);
-      // Siempre usar auto/upload — Cloudinary detecta el tipo
-      const endpoint='https://api.cloudinary.com/v1_1/'+CLD_CLOUD+'/auto/upload';
+      // PDFs y docs → raw/upload; imágenes → image/upload
+      const extFile=(file.name||'').split('.').pop().toLowerCase();
+      const isDocFile=['pdf','doc','docx','xls','xlsx','ppt','pptx','txt','zip','rar'].includes(extFile);
+      const endpoint='https://api.cloudinary.com/v1_1/'+CLD_CLOUD+'/'+(isDocFile?'raw':'image')+'/upload';
       const res=await fetch(endpoint,{method:'POST',body:fd});
       if(!res.ok){const e=await res.text();console.error('CLD error:',e);alert('Error subiendo '+file.name+'.\nDetalle: '+e);continue;}
       const data=await res.json();
