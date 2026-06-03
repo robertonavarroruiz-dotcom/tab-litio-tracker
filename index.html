@@ -136,6 +136,9 @@ document.getElementById('logo-img').src=LOGO_SRC;
 
 const CLD_CLOUD='dys4yv8vp';
 const CLD_PRESET='tab-litio';
+// Supabase para documentos
+const SB_URL='https://uyshgtnvmdwjmtuxqbzb.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV5c2hndG52bWR3am10dXhxYnpiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4NDQ5MDAsImV4cCI6MjA5NTQyMDkwMH0.yv18zffPgk1kND_ACfhPY-08KttdCEzWIx6ZDr5WrzE';
 
 const ROLES={
   detector:{label:'Roberto · Detector',perms:['view','add','edit_own']},
@@ -372,7 +375,7 @@ function renderSP(){
     // Documentos con subida directa via Cloudinary
     +'<div class="ps"><div class="pst"><span>Documentos adjuntos</span></div>'
     +((o.docs||[]).length===0?'<div style="font-size:12px;color:var(--text3);margin-bottom:10px">Sin documentos adjuntos</div>':'')
-    +((o.docs||[]).map((d,i)=>{const isPdf=(d.name||'').toLowerCase().endsWith('.pdf');const viewUrl=isPdf?d.url.replace('/upload/','/upload/fl_attachment/'):d.url;return '<div class="doc-item"><i class="ti '+fileIcon(d.name)+'" style="font-size:18px;color:var(--tab);flex-shrink:0"></i><span class="doc-name" onclick="abrirDoc(\''+d.url+'\',\''+d.name+'\')" title="Abrir documento">'+esc(d.name)+'</span><span style="font-size:11px;color:var(--text3);white-space:nowrap">'+d.size+'</span><a href="'+viewUrl+'" download="'+esc(d.name)+'" target="_blank" style="color:var(--tab);font-size:14px;flex-shrink:0" title="Descargar"><i class="ti ti-download"></i></a><i class="ti ti-trash fdel" onclick="rmDoc(\''+o.id+'\','+i+')" title="Eliminar"></i></div>';}).join(''))
+    +((o.docs||[]).map((d,i)=>'<div class="doc-item"><i class="ti '+fileIcon(d.name)+'" style="font-size:18px;color:var(--tab);flex-shrink:0"></i><span class="doc-name" onclick="abrirDoc(\''+d.url+'\',\''+d.name+'\')" title="Abrir / Descargar">'+esc(d.name)+'</span><span style="font-size:11px;color:var(--text3);white-space:nowrap">'+d.size+'</span><i class="ti ti-trash fdel" onclick="rmDoc(\''+o.id+'\','+i+')" title="Eliminar"></i></div>').join(''))
     +'<div style="margin-top:8px;display:flex;gap:8px;align-items:center"><label style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;background:var(--tab);color:#fff;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:700"><i class="ti ti-upload"></i> Subir archivo<input type="file" multiple style="display:none" onchange="uploadCld(\''+o.id+'\',this)"></label><span id="upload-status-'+o.id+'" style="font-size:11px;color:var(--text3)"></span></div>'
     +'</div>'
 
@@ -405,29 +408,13 @@ async function addComp(id){
   const p=parseFloat(prompt('Precio ofertado (€):'));if(isNaN(p))return;
   const g=confirm('¿Es el adjudicatario ganador?');
   const o=S.opps.find(x=>x.id===id);if(!o.competidores)o.competidores=[];
-  o.competidores.push({nombre:n,precio:p,ganador:g});push(o,'Competidor: '+n+' — '+fmt(p));
-  await jbSave();closeSP();openSP(id);
-}
-function getResourceType(file){
-  // Cloudinary acepta PDFs como 'image' con fl_attachment para descargar
-  // Usamos siempre 'auto' y dejamos que Cloudinary decida
-  return 'auto';
-}
-
 function abrirDoc(url, nombre){
   const ext=(nombre||'').split('.').pop().toLowerCase();
   const docTypes=['pdf','doc','docx','xls','xlsx','ppt','pptx','txt','zip','rar'];
   if(docTypes.includes(ext)){
-    // PDFs subidos a /raw/upload/ — abrir directamente, el navegador gestiona la descarga
-    // Corregir URL por si viene de subida antigua con /image/upload/
-    const fixedUrl=url.replace('/image/upload/','/raw/upload/');
     const a=document.createElement('a');
-    a.href=fixedUrl;
-    a.download=nombre;
-    a.target='_blank';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    a.href=url;a.download=nombre;a.target='_blank';
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
   } else {
     window.open(url,'_blank');
   }
@@ -438,27 +425,34 @@ async function uploadCld(id, input){
   if(!files.length)return;
   const statusEl=document.getElementById('upload-status-'+id);
   const o=S.opps.find(x=>x.id===id);if(!o.docs)o.docs=[];
+  const fmtSzLocal=b=>b<1024?b+' B':b<1048576?Math.round(b/1024)+' KB':(b/1048576).toFixed(1)+' MB';
   for(const file of files){
-    if(statusEl)statusEl.innerHTML='<i class="ti ti-loader" style="animation:pulse 1s infinite"></i> Subiendo '+file.name+'...';
+    if(statusEl)statusEl.innerHTML='<i class="ti ti-loader"></i> Subiendo '+file.name+'...';
     try{
-      const fd=new FormData();
-      fd.append('file',file);
-      fd.append('upload_preset',CLD_PRESET);
-      // PDFs y docs → raw/upload; imágenes → image/upload
-      const extFile=(file.name||'').split('.').pop().toLowerCase();
-      const isDocFile=['pdf','doc','docx','xls','xlsx','ppt','pptx','txt','zip','rar'].includes(extFile);
-      const endpoint='https://api.cloudinary.com/v1_1/'+CLD_CLOUD+'/'+(isDocFile?'raw':'image')+'/upload';
-      const res=await fetch(endpoint,{method:'POST',body:fd});
-      if(!res.ok){const e=await res.text();console.error('CLD error:',e);alert('Error subiendo '+file.name+'.\nDetalle: '+e);continue;}
-      const data=await res.json();
-      const fmtSzLocal=b=>b<1024?b+' B':b<1048576?Math.round(b/1024)+' KB':(b/1048576).toFixed(1)+' MB';
-      // Guardar resource_type para poder construir URLs correctas
-      o.docs.push({
-        name:file.name,
-        url:data.secure_url,
-        size:fmtSzLocal(file.size),
-        public_id:data.public_id
-      });
+      const ext=(file.name||'').split('.').pop().toLowerCase();
+      const isDoc=['pdf','doc','docx','xls','xlsx','ppt','pptx','txt','zip','rar'].includes(ext);
+      let url='';
+      if(isDoc){
+        // Documentos → Supabase Storage
+        const clean=file.name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9._-]/g,'_').replace(/_+/g,'_').substring(0,100);
+        const path=id+'/'+Date.now()+'_'+clean;
+        const res=await fetch('https://uyshgtnvmdwjmtuxqbzb.supabase.co/storage/v1/object/documentos/'+encodeURIComponent(path),{
+          method:'POST',
+          headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV5c2hndG52bWR3am10dXhxYnpiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4NDQ5MDAsImV4cCI6MjA5NTQyMDkwMH0.yv18zffPgk1kND_ACfhPY-08KttdCEzWIx6ZDr5WrzE','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV5c2hndG52bWR3am10dXhxYnpiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4NDQ5MDAsImV4cCI6MjA5NTQyMDkwMH0.yv18zffPgk1kND_ACfhPY-08KttdCEzWIx6ZDr5WrzE','Content-Type':file.type||'application/octet-stream','x-upsert':'true'},
+          body:file
+        });
+        if(!res.ok){const e=await res.text();alert('Error subiendo '+file.name+':\n'+e);continue;}
+        url='https://uyshgtnvmdwjmtuxqbzb.supabase.co/storage/v1/object/public/documentos/'+encodeURIComponent(path);
+      } else {
+        // Imágenes → Cloudinary
+        const fd=new FormData();
+        fd.append('file',file);fd.append('upload_preset',CLD_PRESET);
+        const res=await fetch('https://api.cloudinary.com/v1_1/'+CLD_CLOUD+'/image/upload',{method:'POST',body:fd});
+        if(!res.ok){const e=await res.text();alert('Error: '+e);continue;}
+        const data=await res.json();
+        url=data.secure_url;
+      }
+      o.docs.push({name:file.name,url,size:fmtSzLocal(file.size)});
       push(o,'Documento subido: '+file.name);
     }catch(e){alert('Error: '+e.message);}
   }
