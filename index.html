@@ -60,7 +60,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:13
 .bh{background:#FEF3C7;color:#92400E;border:1px solid #FCD34D;font-size:10px;padding:2px 6px}
 .chip{display:inline-flex;padding:3px 9px;border-radius:5px;font-size:11px;font-weight:700;background:var(--bg3);color:var(--text2);border:1px solid var(--border)}
 .panel-bg{position:fixed;inset:0;background:rgba(0,0,0,.28);z-index:200;display:flex;justify-content:flex-end}
-.panel{background:#fff;width:580px;max-width:96vw;height:100vh;overflow-y:auto;border-left:1px solid var(--border);padding:26px;display:flex;flex-direction:column;gap:16px;box-shadow:-4px 0 20px rgba(0,0,0,0.09)}
+.panel{background:#fff;width:600px;max-width:96vw;height:100vh;overflow-y:auto;border-left:1px solid var(--border);padding:26px;display:flex;flex-direction:column;gap:16px;box-shadow:-4px 0 20px rgba(0,0,0,0.09)}
 .panel-title{font-size:16px;font-weight:800;color:var(--text);line-height:1.3}
 .ps{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px}
 .pst{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
@@ -105,6 +105,20 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:13
 .sync-dot{width:7px;height:7px;border-radius:50%;background:var(--ok);flex-shrink:0}
 .sync-dot.spin{background:var(--warn);animation:pulse 1s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+/* COMENTARIOS */
+.comment-item{background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:8px}
+.comment-header{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.comment-avatar{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0}
+.comment-author{font-size:12px;font-weight:700;color:var(--text)}
+.comment-date{font-size:11px;color:var(--text3);margin-left:auto}
+.comment-text{font-size:13px;color:var(--text2);line-height:1.5}
+.comment-input{display:flex;gap:8px;align-items:flex-end;margin-top:10px}
+.comment-input textarea{flex:1;background:var(--bg);border:2px solid var(--border2);border-radius:7px;padding:8px 12px;color:var(--text);font-family:var(--font);font-size:13px;outline:none;resize:none;height:72px;line-height:1.5}
+.comment-input textarea:focus{border-color:var(--tab)}
+/* LOGIN password */
+.pw-input{width:100%;background:var(--bg3);border:2px solid var(--border2);border-radius:8px;padding:10px 12px;color:var(--text);font-family:var(--font);font-size:13px;outline:none;margin-top:8px}
+.pw-input:focus{border-color:var(--tab)}
+.login-err{color:var(--red);font-size:12px;margin-top:6px;font-weight:600;display:none}
 </style>
 </head>
 <body>
@@ -133,10 +147,17 @@ const CLD_CLOUD='dys4yv8vp';
 const CLD_PRESET='tab-litio';
 const LOGO_SRC='data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCADhAOEDASIAAhEBAxEB/8QAHQABAAIDAQEBAQAAAAAAAAAAAAcIBAYJBQMCAf/EAFEQAAEDBAADAwUKBQ8NAAAAAAABAgMEBQYRBxIhCBMxQVFWYXEVFhgiIzKBlbLTFHSRs9IXNTdCRlJUVWJllKGjtNEnNENEY2Zyc3WChJLB/8QAGwEBAAIDAQEAAAAAAAAAAAAAAAQFAgMGAQf/xAAwEQABBAEBBQYGAwEBAAAAAAAAAQIDEQQFEhMhMYEVQWGhwdEGIlFScbE0QlMH8P/aAAwDAQACEQMRAD8AuWAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARPxX4zw4HlSWJ9gfXqtMyfvUqkj+crk1rlX97478pugx5Mh+xGlqaMjJixmbcq0hLAK9fCbpfRCX6wT7sfCbpfRCX6wT7sm9j5n2eae5A7dwP9PJfYsKCvXwm6X0Ql+sE+7Hwm6b0Pl/p6fdjsfM+zzT3HbuB/p5L7FhQeDw9yRuXYdb8iZSLSNrGvckKv51Zyvc3x0m/m78BxAyalw/Ea/IauPvWUrE5IkfyrI9yo1rd9dbVU66XXiQN0/ebuuN11LHfM3e9v5au/Dme8CvXwmqb0Pl+sE+7Nt4U8aqDOsnWwus77ZM6B0sLnVKSJIrdbbrlTrpVX2NUlyaXlRMV7mcE8UIMWsYcz0Yx9qvgvsSwACAWYBG3GLirFw7r7dSyWV1x/DYpJEclT3fJyqia1yrvxND+E3S+h8v8AT0+7J0Om5UzEextovinuV0+rYkEixyPpU8F9iwoK9fCbpfRCX6wT7s/UfaaoleiSYjOjfKra5FX7Bs7HzPs809zV25gf6eS+xYMEe8OeL+I5rVNt9NLNb7m7fJSVaI1ZdePI5FVHezovRemiQiDLDJC7ZkSlLGGeOdm3G60AANZtAK7Zr2n6fGsvu+POwuaqW21klKsyXFGJJyOVObXdrrevDZ4/wu6b0Dm+tE+7JzdNyXIio3zQiOzoGrSuLQgr/wANu0pBmedWrF2YfLROuEro+/dcEekemOdvl7tN/N14p4lgCPNjyQLsyJSm6KZkqWxbAANJtAAAAAABUftbUdwm4rMfTUVVNH7mQpzRwuc3fPJ5UQtwCXhZa4su8RLIedhpmRbpVo50uoLs1qudba5ETaqq07+n9RhJP6zotf8ApYrgqfwWT7KnNaOVO7bpU8EOr07Uly0dbaqjkdR0luJs067s9imbU1Mix00Es70TatjYrl159J5OqGR7n3f+LK/+jP8A8CUexU/m4u16fzDOv9vTlxSPnaw7Gl3aNvqSMHQ2ZMKSK6uhoHZ3jlh4M47HNG+KRIpeZj2qip8s/wAUUiztnZVyLZ8Pp5OvWvq0RfayJF/tF16mlkXKjWq5yoiIm1VfBDnrxbytcw4j3q/tk56eeoVlL16JCxOSPXm21qO9qqVmlM3+WsypyteqlrqztxhpCi86Toh5Hfr5z2MJyWbF8utWQQ8zloalkr2t8Xs3p7fpark+k83GrBcsgpb1U0DEdHZ7c+4VKqi67trmoqIvn05V9jVPG7z1p+U6lz2yIrF69Tk2wujVr0/KdDpjSVENXSw1VNI2WCZjZI3tXaOaqbRU9Sop9CJOyhlXvj4T0tHNIjquyyLQyJ5e7REWJfZyKjd+diktnATxLDI5i9x9EglSWNr07ysHbXfyX7GevjS1H22Fe++Xzk99uV3Lf8W9dLU/bjK5d560Oy0l1YjOv7U4rWIrzHr+P0hINBw34g3Chp6+ixO5z0tTE2aGVjE5XsciK1ydfBUVFPJybHckxmWKPILLXWxZtrEtRErWv14o13gqp5URemyxeCdoTh3Z8IsVorZbolTQ22nppuSjVW87Imtdpd9U2imh9o3jTjOd4rS4/j9FWuVlW2pkqaqJrEajWuRGsRFVdrzdVXXTz76aYc7MdNsOj+W+Ztm03DbBttk+auXAhuCsmp546inmfDNE9r45GKrXMci7RUVPBUXrsvzwrv8ANlPDux36o1+EVdI1Z9JpFkb8V6onkRXNU5+2S3XK+XWntVnopq6uqXoyKCFvM5y//ETxVV6InVdIdBuGmOuxPArNjr5Gyy0VK1kz2+DpF+M9U9XMq6ImvvYrWJ/b0Jnw9E9j3r/WvM2IAHMnUnOrjfEq8YcuVP43qPtqa2+xXZljjvj6CobbJKhaZlUrPk3SonMrEXz6RVN64y0fecWcrejfG7VH21NjudIvwXbREqfurlcif+O87hqrHFFXfSeRxDpWvll48rXzNZ7NUSt464oq/wAKk/MSHQIol2d6NY+NeLv5daqXr/YyF7Sh11Knb+PVS90ORJIFVPr6IAAUpdAAAAAAAAAGFf8A9Ybh+KyfZU5kRSJ3TOv7VPKdNsg/WG4fisv2VOYMTl7pn/Ch0Ohcn9PUotabex19Cf8AsQu3xhr0/mCo/vFMXNKWdht3+WO4J/u/Uf3imLpkLWP5K/hCZpSVjJ1I07TOWJiXCC7TxTd3WXFvudSKi6XnlRUcqetrEe76ChHOiJ0Un3tv5Ylxze3YnTSosNng76pRF/08qIqIqedsaNVP+YpXrmUudJh3WPtLzdx9io1WTezUnJOBcnsdYdTs4WXS73GnR/vikfDpyfOpmI6PX0uWX2poqlllpnxzKLpYKlVWW3VclMqr05uRyojvpTS/SZ1s4kZ9bLfBb7dmF6pKSnYkcMMNU5rI2p4IiJ4HgXi6XG8XOe53Wtmra2dUWWeZ3M96oiIiqq+PRET6Dbj48scz5HLaO/8AJ5GvIlikhZG1OLSbOxrlfuNxQksU8vLS32nWJE8nfx7fGv8A694ntchdM5gWW51dmvNFd6ByMq6GojqYHL4I9jkc3fq2iHS3FrzSZFjVtv1Au6W4UsdTFvxRHtRdL603pfYVGtQ7MiSJ3+ha6RLcaxr3FYu3c7lv+J/itV9uMrZ3ief+ssf29V1fsS/Far7cRWhVUttL/is6/tSq1Jt5Lun6JMtfBbijdLZS3OgxOWekq4GTwSJW06c8b2o5q6WRFTaKi9UPOy7hfxBxO2Lc8gxespKFqoj52yRzMZvonMsbncqb0m10m1RC1XDnjNwxtvD3G7dXZdRwVdLaaWCeJ0cm2PbE1rmrpvkVFQ8jjdxx4c1fDK/WazXll3uFzoZaOGGGCTTVkarOdznNRqcu+bx30TRCZqGWsqN3fC/opMdp2Ike1t8a+qFUsPyu/YjeWXfHbpNQVbOiuYu2yN8rXtXo5vqX2+PUvjwQz+DiNgdPfUhZT1sb1pq6Bi7bHM1EVeX+S5Fa5PMjtdVQ528yluewayb3p5NMrV7l1wjY1fJzJHt306c38qGzWYWOh3lcUMNJke2Xd3wUsiADlzoyrGeZ9YqTN75STcMcWr5YLhPE+pnb8pMrXqivd8Veq+J7FbmtmZwYt91Xh5jr6aS9vp225W/IRuSJzu9T4vzlRNeHlIr4nfsk5P8A9Xqvzrj0a682yTgtbrAyqatyhvslVJByrtsSwuajt614qia3spE1PK2nIsi8Lo+xu+DtHWDGezGS3K3a58UVqqt8eV0btwrzqyV/ESyUNNw2xm1zVFQrGVdK35WJeRy7b8VPIip9JZwpVwT/AGXMY/HF/NvLqk7ByZchiulda2cb8a6RhaVlxxYcaMarbVEvnapfG/oAATTjgAAAAAAAADByD9Ybh+Ky/ZU5fRKndN6p81Dqc9rXscx7Uc1yac1U2ip5jXveJg/objv1ZD+iWWBnpiI623dEHNw1yapaoqX2GlReM1w6/ueqP7xTFzbtX0tqtVXdK6VIaSjgfPPIvgxjGq5y/QiKYdoxrHLPVOq7Rj9pt9Q5ixulpaOOJ6sVUVW7aiLraIuvUhn1tLS11JLR1tNDU00zFZLDMxHse1fFHNXoqepTRmZKZEu8qjbjQLBFsXZzOzG/1OUZXdMirVVJ7jVPqFart8iOX4rN+ZrdNT1Ib72ZuHtBxFz6ahvMU0looaN09V3UisVzlVGxs5k6ptVV3/Ypdj3iYR6G479WQ/ono2aw2OyrKtms1utvfa738EpWRc+t65uVE3ra+PnUsZdYRYlZG2l7uPIgx6XUm291kV/Bn4U/xbcvrGX/ABNB4/8AAPEMZ4YXHIcTpK2Kutzo5pUkqnyo+Hm5ZE05dJpHc2/5BaM+VXTU9ZSS0lXBFUU8zFjlilYjmSNVNK1yL0VFTppSvjz52PRyvVa8Sa/Dhc1URqIct9p5y5nYhyxLrw9rcWnk5qix1PNEir17iZXPb+R6SJ6k5fUS/wC8TCPQ3HfqyH9EzrPjmPWad89nsVrt0r28j30tJHE5zd70qtRNptPAmZmpMyYtjZrqRsTAdjybW0Vf7e6ol+xLr/qtV9uIrNtPOdOrzj1gvUkUl5sdsuT4kVsbqukZKrEXxRFci63pPyGB7xMI9Dcd+rIf0TLF1VsEKRq268TDJ01ZpFftVZzU2nnHMnnT8p0r94mEehuO/VkP6J9IcLw6CRJIcTsMT06o5luiRU/I0kduN+zzNHY6/d5HPbh7gmU55dGUGNWuWqTm5ZapyK2ng86vk1pPPrq5fIil/eFGE0HD7B6HGqGTv1hRX1FQreVZ5ndXv15E30ROukRE2ujZ4YooImxQxsijammsY1ERE9SIfsrc3UH5Xy1SFhiYTMfii2oABXk0o3xOcn6pWTptOl3qfL/tXGvbTzoXsqcUxapqJKipxqzTTSuV8kklDE5z3Ku1VVVu1VfOfP3m4h6K2L6vi/RKZ+luc5V2j6pjf9EhhhZGsCrsoic07kr6FR+CaovFzGNKn+eL+beXVPIosXxmiqo6qjx20U1RGu2SxUUbHtXzoqJtD1ydh4y47Vaq2cf8T68zWslkzGbOy2uK33qvqAASzmwAAAAAAAAAAAAAAAAAAAAAAAAAAAAACDuOWVXpvFjGMCblj8MsdypX1E91j5GyTyIrkSFsjujF2jevnkTx6IvuYLZeI2KZ8tDU5BV5bhFTRLK2uuEsS1NHOm9N2io6Rqonm18ZPDS82HxjyrEY81ocK4nYrR+9evpVmo77VyqsbanaosSaZuJ3LtedHovVOml2mkcJ6i1WXjs/F+Ft/q7zhUtpknuVOs7qimoZfjcixvXyqqMTxXfMu1XSctm1iuh4JXD6cF8b7l8CE5ak4rfH68un0Nzj7R+CTWxl0p7ZlU9Aj1ZVVUVpc6GjXek716Lyoq9FRGq5dKnTro3HMOJ2I4zYLTeKmtmrmXpG+5NPb4Vnnr+ZEVO6Ynj0c3x0nxkTxVEWvvCHiDhFl7LV9sN5vFE25LDXRpbZXalnWVqoxGt/bIqqm3J0TrtU0Z773fsM4d8IsZr7hDisdyindWX2poWSyUDNpIyJveIrY3Oa9EVVTaa3+1UyfhMR9IipSqnPmlXfIxZkuVt3zS/x5k3YLxMx/NX3W3UUF4tF2tsfPV2+50a09VC1ydH8q7T+vptN62m9O4f8S8WxTglZcjumRZLe7bV3B9Gy4XOJHVSvV713IiOXTG8q9dqukTp5E0zhFX0Nd2lcjkt+XVOVw+9d7PdOdI0WZWyQoqN7tjGua1eiKifSppdErHdkzh+iq1WuzBiepflJjJMRl7Pcqt80XwPFndV96X+0LF4pxkxXIcxhxZlFfrZXVbHSUDrnbnUzK1iIrldFzdVTSKqcyJvXnJGIS41qidoXg91RHLPcE9a/EiJtIE7GtRrm96eqp6EuJzlVyO7lAAI5tAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPhX0VHcKV9LX0kFXTv+fFNGj2O9qL0Ux7dZ7Xa6KSktFtorfE9F+TpoGxN3rx01EM8HtrVHlIRhwP4Xsw/AbfZcpobJc7nRVU00VQyHvki538ycjpGI5F9iISNc7db7pRuo7nQ0tdTOVFdDURNkYvta5FQyQZySukcr1XiYsjaxuyhg01ntNLNHNTWuhgkii7mN8dO1rmR/vEVE6N9Xgfz3Es34DHQ+5FB+CRSd5HB+DM7tj+vxkbrSL1Xr6zPBhamVIY9RQ0VRUwVVRR0809OqrBK+NHPi348qr1TfqMgA8PQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD/9k=';
 
+// Contraseñas por perfil
+const PASSWORDS={
+  detector:'tab2026',
+  pm:'ivan2026',
+  hv:'hv2026'
+};
+
 const ROLES={
-  detector:{label:'Roberto · Detector',perms:['view','add','edit_own']},
-  pm:{label:'Iván · PM Litio',perms:['view','approve','edit_tech']},
-  hv:{label:'HV · Responsable',perms:['view','add_competitor','approve']},
+  detector:{label:'Roberto · Detector',perms:['view','add','edit_own'],color:'#00579C',initials:'RD'},
+  pm:{label:'Iván · PM Litio',perms:['view','approve','edit_tech'],color:'#7C3AED',initials:'PM'},
+  hv:{label:'HV · Responsable',perms:['view','add_competitor','approve'],color:'#065F46',initials:'HV'},
 };
 const ESTADOS=['Detectada','Revisión PM','Enviada cliente','Ganada','Perdida'];
 const PRODUCTOS=['BESS','Batería Litio','Inversor','Smart Meter','Mixto BESS+Inversor','HV System'];
@@ -159,7 +180,6 @@ async function jbLoad(){
   }
   setSyncing(false);
 }
-
 async function jbSave(){
   setSyncing(true);
   try{
@@ -177,7 +197,6 @@ async function jbSave(){
   setSyncing(false);
   return true;
 }
-
 function setSyncing(v){
   const el=document.getElementById('sync-bar');
   if(!el) return;
@@ -211,8 +230,8 @@ function deadlineBadge(fecha){
   const hoy=new Date();hoy.setHours(0,0,0,0);
   const fin=new Date(fecha);fin.setHours(0,0,0,0);
   const dias=Math.round((fin-hoy)/(1000*60*60*24));
-  const partes=fecha.split('-');
-  const fechaStr=partes[2]+'/'+partes[1]+'/'+partes[0];
+  const p=fecha.split('-');
+  const fs=p[2]+'/'+p[1]+'/'+p[0];
   let color,bg,label;
   if(dias<0){color='#6B7280';bg='#F3F4F6';label='Caducada';}
   else if(dias===0){color='#991B1B';bg='#FEE2E2';label='¡Hoy!';}
@@ -221,7 +240,7 @@ function deadlineBadge(fecha){
   else if(dias<=10){color='#B45309';bg='#FEF9C3';label=dias+'d';}
   else{color='#065F46';bg='#D1FAE5';label=dias+'d';}
   return '<div style="display:flex;flex-direction:column;gap:2px">'
-    +'<span style="font-size:11px;font-weight:700;color:'+color+'">'+fechaStr+'</span>'
+    +'<span style="font-size:11px;font-weight:700;color:'+color+'">'+fs+'</span>'
     +'<span style="display:inline-flex;align-items:center;justify-content:center;padding:1px 7px;border-radius:20px;font-size:10px;font-weight:700;background:'+bg+';color:'+color+'">'+label+'</span>'
     +'</div>';
 }
@@ -236,6 +255,7 @@ async function render(){
   else if(S.tab==='export') renderExport(m);
 }
 
+// ── LOGIN CON CONTRASEÑA ──
 function renderLogin(){
   document.getElementById('nav-tabs').innerHTML='';
   document.getElementById('modal-root').innerHTML='';
@@ -244,20 +264,27 @@ function renderLogin(){
     +'<img src="'+LOGO_SRC+'" alt="TAB Spain" style="height:80px;width:auto;margin-bottom:18px">'
     +'<div style="font-size:12px;color:var(--text3);letter-spacing:.7px;text-transform:uppercase;margin-bottom:26px">División Litio · High Voltage</div>'
     +'<div style="text-align:left;margin-bottom:14px">'
-    +'<label style="display:block;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Acceder como</label>'
-    +'<select id="lr" style="width:100%;background:var(--bg3);border:2px solid var(--border2);border-radius:8px;padding:10px 12px;color:var(--text);font-family:var(--font);font-size:13px;outline:none">'
+    +'<label style="display:block;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Perfil de acceso</label>'
+    +'<select id="lr" style="width:100%;background:var(--bg3);border:2px solid var(--border2);border-radius:8px;padding:10px 12px;color:var(--text);font-family:var(--font);font-size:13px;outline:none" onchange="document.getElementById(\'login-err\').style.display=\'none\'">'
     +'<option value="">— Seleccionar perfil —</option>'
     +'<option value="detector">Roberto · Detector de oportunidades</option>'
     +'<option value="pm">Iván · PM Litio</option>'
     +'<option value="hv">HV · Responsable High Voltage</option>'
-    +'</select></div>'
+    +'</select>'
+    +'<label style="display:block;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-top:14px;margin-bottom:6px">Contraseña</label>'
+    +'<input type="password" id="lpw" class="pw-input" placeholder="Introduce tu contraseña" onkeydown="if(event.key===\'Enter\')doLogin()">'
+    +'<div id="login-err" class="login-err">Perfil o contraseña incorrectos</div>'
+    +'</div>'
     +'<button class="btn btn-p btn-full" onclick="doLogin()"><i class="ti ti-login"></i> Entrar</button>'
     +'</div></div>';
 }
 
 async function doLogin(){
   const v=document.getElementById('lr').value;
-  if(!v) return;
+  const pw=document.getElementById('lpw').value;
+  const errEl=document.getElementById('login-err');
+  if(!v){errEl.style.display='block';errEl.textContent='Selecciona un perfil.';return;}
+  if(!pw||pw!==PASSWORDS[v]){errEl.style.display='block';errEl.textContent='Contraseña incorrecta.';return;}
   S.user=v; S.tab='opps';
   document.getElementById('main').innerHTML='<div style="text-align:center;padding:80px;color:var(--text3)"><i class="ti ti-loader" style="font-size:32px;display:block;margin-bottom:12px;animation:pulse 1s infinite"></i>Cargando expedientes...</div>';
   await jbLoad();
@@ -289,13 +316,15 @@ function renderOpps(main){
   });
   const cnt={};ESTADOS.forEach(e=>cnt[e]=S.opps.filter(o=>o.estado===e).length);
   const tot=S.opps.reduce((a,b)=>a+(b.importe||0),0);
-
   let rows='';
   opps.forEach(o=>{
+    const nComments=(o.comentarios||[]).length;
     rows+=
       '<div class="tr c8" onclick="openSP(\'' +o.id+ '\')">'
       +'<div><div style="font-weight:700;font-size:12px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.4">'+esc(o.nombre)+'</div>'
-      +'<div style="color:var(--text3);font-size:11px;margin-top:2px">'+esc(o.expediente)+' · '+esc(o.plataforma||'')+' · '+o.fecha+'</div></div>'
+      +'<div style="color:var(--text3);font-size:11px;margin-top:2px">'+esc(o.expediente)+' · '+esc(o.plataforma||'')+' · '+o.fecha
+      +(nComments?' · <span style="color:var(--tab)"><i class="ti ti-message-circle"></i> '+nComments+'</span>':'')
+      +'</div></div>'
       +'<div>'+badge(o.estado)+'</div>'
       +'<div>'+deadlineBadge(o.fecha_limite)+'</div>'
       +'<div><span class="chip">'+esc(o.cliente)+'</span></div>'
@@ -304,12 +333,11 @@ function renderOpps(main){
       +'<div style="font-weight:700;font-size:13px;color:var(--tab);padding-top:2px">'+fmt(o.importe)+'</div>'
       +'<div style="font-weight:700;font-size:13px;padding-top:2px;color:'+(o.estado==='Ganada'?'var(--ok)':o.estado==='Perdida'?'var(--red)':'var(--text3)')+'">'+fmt(o.precio_final)+'</div>'
       +'<div style="display:flex;gap:4px">'
-      +(can('add')||can('edit_own')||can('edit_tech')||can('edit_price')||can('approve')?'<button class="btn btn-g btn-sm" title="Editar" onclick="event.stopPropagation();openModal(\'' +o.id+ '\')"><i class="ti ti-edit"></i></button>':'')
+      +(can('add')||can('edit_own')||can('edit_tech')||can('approve')?'<button class="btn btn-g btn-sm" title="Editar" onclick="event.stopPropagation();openModal(\'' +o.id+ '\')"><i class="ti ti-edit"></i></button>':'')
       +(can('add')||can('edit_own')?'<button class="btn btn-danger btn-sm" title="Eliminar" onclick="event.stopPropagation();eliminar(\'' +o.id+ '\')"><i class="ti ti-trash"></i></button>':'')
       +'<button class="btn btn-g btn-sm" title="Ver" onclick="event.stopPropagation();openSP(\'' +o.id+ '\')"><i class="ti ti-eye"></i></button>'
       +'</div></div>';
   });
-
   main.innerHTML=
     '<div class="sync-bar" id="sync-bar"></div>'
     +'<div class="stats">'
@@ -345,16 +373,21 @@ function renderSP(){
   div.onclick=e=>{if(e.target===div)closeSP()};
   const maxP=(o.competidores||[]).length?Math.max(...o.competidores.map(c=>c.precio)):1;
 
-  let docsHtml='';
-  (o.docs||[]).forEach((d,i)=>{
-    docsHtml+='<div class="doc-item">'
-      +'<i class="ti '+fileIcon(d.name)+'" style="font-size:18px;color:var(--tab);flex-shrink:0"></i>'
-      +'<span class="doc-name" onclick="abrirDoc(\'' +d.url+ '\',\'' +d.name.replace(/'/g,'')+'\')" title="Abrir/Descargar">'+esc(d.name)+'</span>'
-      +'<span style="font-size:11px;color:var(--text3);white-space:nowrap">'+d.size+'</span>'
-      +'<i class="ti ti-trash fdel" onclick="rmDoc(\'' +o.id+ '\',' +i+ ')" title="Eliminar"></i>'
-      +'</div>';
-  });
+  // Documentos
+  let docsHtml='<div style="font-size:12px;color:var(--text3)">Sin documentos</div>';
+  if((o.docs||[]).length){
+    docsHtml='';
+    o.docs.forEach((d,i)=>{
+      docsHtml+='<div class="doc-item">'
+        +'<i class="ti '+fileIcon(d.name)+'" style="font-size:18px;color:var(--tab);flex-shrink:0"></i>'
+        +'<span class="doc-name" onclick="abrirDoc(\'' +d.url+ '\',\'' +d.name.replace(/'/g,'').replace(/"/g,'')+'\')" title="Abrir/Descargar">'+esc(d.name)+'</span>'
+        +'<span style="font-size:11px;color:var(--text3);white-space:nowrap">'+d.size+'</span>'
+        +'<i class="ti ti-trash fdel" onclick="rmDoc(\'' +o.id+ '\',' +i+ ')" title="Eliminar"></i>'
+        +'</div>';
+    });
+  }
 
+  // Competidores
   let compsHtml='<div style="font-size:12px;color:var(--text3)">Sin competidores</div>';
   if((o.competidores||[]).length){
     compsHtml='';
@@ -367,11 +400,27 @@ function renderSP(){
     });
   }
 
+  // Historial
   let tlHtml='';
   o.timeline.forEach((t,i)=>{
     tlHtml+='<div class="tl-item">'
       +'<div class="tl-w"><div class="tl-dot" style="background:'+(i===o.timeline.length-1?'var(--ok)':'var(--tab)')+'"></div>'+(i<o.timeline.length-1?'<div class="tl-ln"></div>':'')+'</div>'
       +'<div class="tl-c"><div class="tl-date">'+t.fecha+'</div><div class="tl-txt">'+esc(t.txt)+'</div></div>'
+      +'</div>';
+  });
+
+  // Comentarios
+  let commentsHtml='';
+  (o.comentarios||[]).forEach((c,i)=>{
+    const role=ROLES[c.perfil]||{label:c.perfil,color:'#718096',initials:'??'};
+    commentsHtml+='<div class="comment-item">'
+      +'<div class="comment-header">'
+      +'<div class="comment-avatar" style="background:'+role.color+'">'+role.initials+'</div>'
+      +'<span class="comment-author">'+esc(role.label)+'</span>'
+      +'<span class="comment-date">'+c.fecha+'</span>'
+      +(can('add')||c.perfil===S.user?'<i class="ti ti-trash" style="cursor:pointer;color:var(--text3);font-size:13px;margin-left:6px" onclick="rmComment(\'' +o.id+ '\',' +i+ ')"></i>':'')
+      +'</div>'
+      +'<div class="comment-text">'+esc(c.texto)+'</div>'
       +'</div>';
   });
 
@@ -382,11 +431,12 @@ function renderSP(){
     +'<div style="color:var(--text3);font-size:12px;margin-top:4px">'+esc(o.expediente)+' · '+esc(o.plataforma||'')+' · '+o.fecha+'</div>'
     +'</div>'
     +'<div style="display:flex;gap:6px">'
-    +(can('add')||can('edit_own')||can('edit_tech')||can('edit_price')||can('approve')?'<button class="btn btn-g btn-sm" onclick="closeSP();openModal(\'' +o.id+ '\')" title="Editar"><i class="ti ti-edit"></i></button>':'')
+    +(can('add')||can('edit_own')||can('edit_tech')||can('approve')?'<button class="btn btn-g btn-sm" onclick="closeSP();openModal(\'' +o.id+ '\')" title="Editar"><i class="ti ti-edit"></i></button>':'')
     +(can('add')||can('edit_own')?'<button class="btn btn-danger btn-sm" onclick="closeSP();eliminar(\'' +o.id+ '\')" title="Eliminar"><i class="ti ti-trash"></i></button>':'')
     +'<button class="btn btn-g btn-sm" onclick="closeSP()"><i class="ti ti-x"></i></button>'
     +'</div></div>'
 
+    // Importes
     +'<div class="ps"><div class="pst"><span>Importes</span></div><div class="fg">'
     +'<div class="kv"><span class="kl">Presupuesto TAB</span><span class="biga">'+fmt(o.importe)+'</span><span style="font-size:11px;color:var(--text3)">Nuestro material</span></div>'
     +'<div class="kv"><span class="kl">Precio final cliente</span><span class="biga" style="color:'+(o.estado==='Ganada'?'var(--ok)':o.estado==='Perdida'?'var(--red)':'var(--text3)')+'">'+fmt(o.precio_final)+'</span><span style="font-size:11px;color:var(--text3)">Llave en mano</span></div>'
@@ -394,6 +444,7 @@ function renderSP(){
     +(can('edit_price')?'<div style="margin-top:12px;display:flex;gap:7px;align-items:flex-end"><div style="flex:1"><label style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;display:block;margin-bottom:4px">Actualizar precio final</label><input type="number" id="inp-pf" style="width:100%;background:var(--bg);border:2px solid var(--border2);border-radius:7px;padding:8px 12px;color:var(--text);font-family:var(--font);font-size:13px;outline:none" value="'+(o.precio_final||'')+'"></div><button class="btn btn-p btn-sm" onclick="savePF(\'' +o.id+ '\')"><i class="ti ti-check"></i> Guardar</button></div>':'')
     +'</div>'
 
+    // Detalle
     +'<div class="ps"><div class="pst"><span>Detalle</span></div><div class="fg">'
     +'<div class="kv"><span class="kl">Órgano</span><span class="kv-v">'+esc(o.organo||'—')+'</span></div>'
     +'<div class="kv"><span class="kl">Plataforma</span><span class="kv-v">'+esc(o.plataforma||'—')+'</span></div>'
@@ -413,20 +464,53 @@ function renderSP(){
     +(can('edit_price')&&o.estado==='Enviada cliente'?'<button class="btn btn-ok" onclick="cambiar(\'' +o.id+ '\',\'Ganada\')"><i class="ti ti-trophy"></i> Ganada</button><button class="btn btn-danger" onclick="cambiar(\'' +o.id+ '\',\'Perdida\')"><i class="ti ti-x"></i> Perdida</button>':'')
     +'</div></div>'
 
+    // Documentos
     +'<div class="ps"><div class="pst"><span>Documentos adjuntos</span>'
     +'<label style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:var(--tab)"><i class="ti ti-upload"></i> Subir<input type="file" multiple style="display:none" onchange="uploadDoc(\'' +o.id+ '\',this)"></label>'
-    +'</div>'
-    +((o.docs||[]).length===0?'<div style="font-size:12px;color:var(--text3)">Sin documentos</div>':docsHtml)
-    +'</div>'
+    +'</div>'+docsHtml+'</div>'
 
+    // Competidores
     +'<div class="ps"><div class="pst"><span>Competidores</span>'
     +(can('add_competitor')||can('approve')?'<button class="btn btn-g btn-sm" onclick="addComp(\'' +o.id+ '\')"><i class="ti ti-plus"></i> Añadir</button>':'')
     +'</div>'+compsHtml+'</div>'
 
+    // COMENTARIOS
+    +'<div class="ps"><div class="pst"><span>Notas y comentarios</span>'
+    +'<span style="font-size:11px;color:var(--text3);font-weight:400">'+(o.comentarios||[]).length+' comentario'+((o.comentarios||[]).length===1?'':'s')+'</span>'
+    +'</div>'
+    +((o.comentarios||[]).length===0?'<div style="font-size:12px;color:var(--text3);margin-bottom:10px">Sin comentarios aún. Sé el primero.</div>':commentsHtml)
+    +'<div class="comment-input">'
+    +'<textarea id="new-comment-'+o.id+'" placeholder="Escribe una nota o comentario..."></textarea>'
+    +'<button class="btn btn-p btn-sm" onclick="addComment(\'' +o.id+ '\')" style="height:72px;min-width:80px"><i class="ti ti-send"></i><br>Enviar</button>'
+    +'</div></div>'
+
+    // Historial
     +'<div class="ps"><div class="pst"><span>Historial</span></div>'+tlHtml+'</div>'
     +'</div>';
 
   document.body.appendChild(div);
+}
+
+// ── COMENTARIOS ──
+async function addComment(id){
+  const el=document.getElementById('new-comment-'+id);
+  const texto=(el&&el.value||'').trim();
+  if(!texto){ alert('Escribe un comentario antes de enviar.'); return; }
+  const o=S.opps.find(x=>x.id===id);
+  if(!o.comentarios) o.comentarios=[];
+  o.comentarios.push({
+    perfil:S.user,
+    texto,
+    fecha:new Date().toISOString().slice(0,10)+' '+new Date().toTimeString().slice(0,5)
+  });
+  await jbSave();
+  closeSP(); openSP(id);
+}
+async function rmComment(id,i){
+  if(!confirm('Eliminar este comentario?')) return;
+  const o=S.opps.find(x=>x.id===id);
+  o.comentarios.splice(i,1);
+  await jbSave(); closeSP(); openSP(id);
 }
 
 // ── ACCIONES ──
@@ -445,7 +529,6 @@ function abrirDoc(url, nombre){
 async function uploadDoc(id, input){
   const files=Array.from(input.files);
   if(!files.length) return;
-  const statusEl=null;
   const o=S.opps.find(x=>x.id===id);
   if(!o.docs) o.docs=[];
   for(const file of files){
@@ -468,8 +551,7 @@ async function uploadDoc(id, input){
         fd.append('file',file); fd.append('upload_preset',CLD_PRESET);
         const res=await fetch('https://api.cloudinary.com/v1_1/'+CLD_CLOUD+'/image/upload',{method:'POST',body:fd});
         if(!res.ok){ const e=await res.text(); alert('Error: '+e); continue; }
-        const data=await res.json();
-        url=data.secure_url;
+        const data=await res.json(); url=data.secure_url;
       }
       o.docs.push({name:file.name, url, size:fmtSz(file.size)});
       push(o,'Documento subido: '+file.name);
@@ -495,7 +577,7 @@ async function addComp(id){
   const o=S.opps.find(x=>x.id===id);
   if(!o.competidores) o.competidores=[];
   o.competidores.push({nombre:n,precio:p,ganador:g});
-  push(o,'Competidor: '+n+' — '+fmt(p));
+  push(o,'Competidor: '+n+' - '+fmt(p));
   await jbSave(); closeSP(); openSP(id);
 }
 async function rmDoc(id,i){
@@ -517,7 +599,6 @@ function openModal(editId){
   const isEdit=!!o;
   const v=(field,def)=>o&&o[field]!=null?o[field]:(def||'');
   const selOpt=(field,opts)=>opts.map(x=>'<option '+(v(field)===x?'selected':'')+'>'+x+'</option>').join('');
-
   document.getElementById('modal-root').innerHTML=
     '<div class="modal-bg" id="nmbg" onclick="if(event.target.id===\'nmbg\')closeNM()">'
     +'<div class="modal"><div class="modal-title"><i class="ti ti-'+(isEdit?'edit':'plus-circle')+'" style="color:var(--tab)"></i> '+(isEdit?'Editar oportunidad':'Nueva oportunidad')+'</div>'
@@ -536,7 +617,7 @@ function openModal(editId){
     +'<div class="ff"><label>Fecha límite oferta</label><input type="date" id="nf-fl" value="'+(v('fecha_limite'))+'"></div>'
     +'<div class="ff"><label>Precio final cliente (euros)</label><input type="number" id="nf-pf" step="0.01" value="'+(v('precio_final')||'')+'" placeholder="Cuando se conozca"></div>'
     +'<div class="ff full"><label>Descripción / notas</label><textarea id="nf-d">'+esc(v('descripcion'))+'</textarea></div>'
-    +'<div class="ff full"><label>URL pliego / proyecto (enlace directo)</label><input id="nf-url" type="url" placeholder="https://contractaciopublica.cat/..." value="'+esc(v('url_licitacion'))+'"></div>'
+    +'<div class="ff full"><label>URL pliego / proyecto</label><input id="nf-url" type="url" placeholder="https://contractaciopublica.cat/..." value="'+esc(v('url_licitacion'))+'"></div>'
     +'</div>'
     +'<div class="form-actions"><button class="btn btn-g" onclick="closeNM()">Cancelar</button><button class="btn btn-p" id="btn-save" onclick="saveModal(\''+(isEdit?editId:'')+'\')"><i class="ti ti-check"></i> '+(isEdit?'Guardar cambios':'Crear expediente')+'</button></div>'
     +'<div id="save-status"></div>'
@@ -555,7 +636,7 @@ async function saveModal(editId){
   const existing=isEdit?S.opps.find(x=>x.id===editId):null;
   const id=isEdit?editId:'LIT-'+Date.now();
   const opp={
-    id, nombre:n, expediente:e,
+    id,nombre:n,expediente:e,
     plataforma:document.getElementById('nf-pl').value,
     tipo:document.getElementById('nf-t').value,
     fecha:document.getElementById('nf-f').value,
@@ -573,6 +654,7 @@ async function saveModal(editId){
     url_licitacion:(document.getElementById('nf-url').value||'').trim(),
     docs:existing?existing.docs:[],
     competidores:existing?existing.competidores:[],
+    comentarios:existing?existing.comentarios:[],
     timeline:existing?[...existing.timeline]:[{fecha:new Date().toISOString().slice(0,10),txt:'Creado por '+ROLES[S.user].label}]
   };
   if(isEdit) push(opp,'Editado por '+ROLES[S.user].label);
@@ -584,10 +666,7 @@ async function saveModal(editId){
   }
   const ok=await jbSave();
   if(ok){ closeNM(); render(); setTimeout(()=>openSP(id),80); }
-  else{
-    document.getElementById('btn-save').disabled=false;
-    document.getElementById('save-status').innerHTML='<div style="font-size:12px;color:var(--red);margin-top:8px">Error al guardar.</div>';
-  }
+  else{ document.getElementById('btn-save').disabled=false; document.getElementById('save-status').innerHTML='<div style="font-size:12px;color:var(--red);margin-top:8px">Error al guardar.</div>'; }
 }
 
 // ── DASHBOARD ──
@@ -599,37 +678,26 @@ function renderDash(main){
   const volG=ganadas.reduce((a,b)=>a+(b.precio_final||0),0);
   const byProd={};opps.forEach(o=>{byProd[o.producto]=(byProd[o.producto]||0)+1});
   const byCli={AZIMUT:opps.filter(o=>o.cliente==='AZIMUT').length,RICARD:opps.filter(o=>o.cliente==='RICARD').length};
-
   let pipeline='';
   ESTADOS.forEach(e=>{
     const c=opps.filter(o=>o.estado===e).length;
     const p=opps.length?Math.round(c/opps.length*100):0;
     pipeline+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">'+badge(e)+'<div class="cbar" style="flex:1"><div class="cbar-f" style="width:'+p+'%;background:var(--tab)"></div></div><span style="font-weight:800;font-size:13px;min-width:16px">'+c+'</span></div>';
   });
-
-  let clienteHtml='';
+  let cliHtml='';
   Object.entries(byCli).forEach(([k,v])=>{
-    clienteHtml+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><span class="chip" style="min-width:70px;justify-content:center">'+k+'</span><div class="cbar" style="flex:1"><div class="cbar-f" style="width:'+(opps.length?Math.round(v/opps.length*100):0)+'%;background:'+(k==='AZIMUT'?'var(--tab)':'var(--ok)')+'"></div></div><span style="font-weight:800;font-size:13px">'+v+'</span></div>';
+    cliHtml+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><span class="chip" style="min-width:70px;justify-content:center">'+k+'</span><div class="cbar" style="flex:1"><div class="cbar-f" style="width:'+(opps.length?Math.round(v/opps.length*100):0)+'%;background:'+(k==='AZIMUT'?'var(--tab)':'var(--ok)')+'"></div></div><span style="font-weight:800;font-size:13px">'+v+'</span></div>';
   });
-
   let prodHtml='';
   Object.entries(byProd).forEach(([k,v])=>{
     prodHtml+='<div style="display:flex;gap:6px;margin-bottom:7px;align-items:center"><span style="flex:1;font-size:12px;font-weight:600;color:var(--text2)">'+k+'</span><span style="font-weight:800">'+v+'</span></div>';
   });
-
   main.innerHTML=
     '<div class="sec-title"><i class="ti ti-chart-bar" style="color:var(--tab)"></i> Dashboard global</div>'
-    +'<div class="stats">'
-    +'<div class="stat"><div class="sv c-tab">'+opps.length+'</div><div class="sl">Total</div></div>'
-    +'<div class="stat"><div class="sv c-ok">'+tasa+'%</div><div class="sl">Tasa éxito</div></div>'
-    +'<div class="stat"><div class="sv c-tab" style="font-size:15px">'+fmt(volG)+'</div><div class="sl">Volumen ganado</div></div>'
-    +'<div class="stat"><div class="sv c-w">'+opps.filter(o=>o.estado==='Revisión PM').length+'</div><div class="sl">Pendientes PM</div></div>'
-    +'</div>'
-    +'<div class="dash-grid">'
-    +'<div class="tw" style="padding:16px"><div class="pst" style="margin-bottom:12px"><span>Pipeline</span></div>'+pipeline+'</div>'
-    +'<div class="tw" style="padding:16px"><div class="pst" style="margin-bottom:12px"><span>Por cliente</span></div>'+clienteHtml
-    +'<div class="pst" style="margin-top:14px;margin-bottom:10px"><span>Por producto</span></div>'+prodHtml+'</div>'
-    +'</div>';
+    +'<div class="stats"><div class="stat"><div class="sv c-tab">'+opps.length+'</div><div class="sl">Total</div></div><div class="stat"><div class="sv c-ok">'+tasa+'%</div><div class="sl">Tasa éxito</div></div><div class="stat"><div class="sv c-tab" style="font-size:15px">'+fmt(volG)+'</div><div class="sl">Volumen ganado</div></div><div class="stat"><div class="sv c-w">'+opps.filter(o=>o.estado==='Revisión PM').length+'</div><div class="sl">Pendientes PM</div></div></div>'
+    +'<div class="dash-grid"><div class="tw" style="padding:16px"><div class="pst" style="margin-bottom:12px"><span>Pipeline</span></div>'+pipeline+'</div>'
+    +'<div class="tw" style="padding:16px"><div class="pst" style="margin-bottom:12px"><span>Por cliente</span></div>'+cliHtml
+    +'<div class="pst" style="margin-top:14px;margin-bottom:10px"><span>Por producto</span></div>'+prodHtml+'</div></div>';
 }
 
 // ── EXPORTAR ──
@@ -638,31 +706,24 @@ function renderExport(main){
     '<div class="sec-title"><i class="ti ti-download" style="color:var(--tab)"></i> Exportar datos</div>'
     +'<div class="tw" style="max-width:480px;padding:20px"><div class="pst" style="margin-bottom:12px"><span>Opciones</span></div>'
     +'<div class="exp-row"><i class="ti ti-file-spreadsheet" style="color:var(--ok);font-size:20px"></i><div style="flex:1"><span style="font-weight:600;display:block">Todas las oportunidades</span><span style="font-size:11px;color:var(--text3)">Excel .xlsx</span></div><button class="btn btn-p btn-sm" onclick="expXLSX(\'all\')"><i class="ti ti-download"></i> Excel</button></div>'
-    +'<div class="exp-row"><i class="ti ti-trophy" style="color:var(--warn);font-size:20px"></i><div style="flex:1"><span style="font-weight:600;display:block">Solo ganadas</span><span style="font-size:11px;color:var(--text3)">Excel .xlsx</span></div><button class="btn btn-g btn-sm" onclick="expXLSX(\'ganadas\')"><i class="ti ti-download"></i> Excel</button></div>'
+    +'<div class="exp-row"><i class="ti ti-trophy" style="color:var(--warn);font-size:20px"></i><div style="flex:1"><span style="font-weight:600;display:block">Solo ganadas</span></div><button class="btn btn-g btn-sm" onclick="expXLSX(\'ganadas\')"><i class="ti ti-download"></i> Excel</button></div>'
     +'<div class="exp-row"><i class="ti ti-database" style="color:var(--tab);font-size:20px"></i><div style="flex:1"><span style="font-weight:600;display:block">Backup JSON</span></div><button class="btn btn-g btn-sm" onclick="expJSON()"><i class="ti ti-download"></i> JSON</button></div>'
     +'</div>';
 }
-
 async function expXLSX(filtro){
   if(!window.XLSX){
-    await new Promise((res,rej)=>{
-      const s=document.createElement('script');
-      s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
-      s.onload=res; s.onerror=rej;
-      document.head.appendChild(s);
-    });
+    await new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';s.onload=res;s.onerror=rej;document.head.appendChild(s);});
   }
   let opps=S.opps;
   if(filtro==='ganadas') opps=opps.filter(o=>o.estado==='Ganada');
-  const cab=['ID','Nombre','Expediente','Plataforma','Tipo','Fecha','Fecha Límite','Órgano','Cliente','Estado','Producto','Subdivisión','Aprobado PM','Presupuesto TAB','Importe Licitación','Precio Final','Descripción','URL Licitación','Nº Docs','Nº Competidores'];
-  const filas=opps.map(o=>[o.id,o.nombre||'',o.expediente||'',o.plataforma||'',o.tipo||'',o.fecha||'',o.fecha_limite||'',o.organo||'',o.cliente||'',o.estado||'',o.producto||'',o.subdivision||'',o.aprobado_pm?'Sí':'No',o.importe||'',o.importe_licitacion||'',o.precio_final||'',o.descripcion||'',o.url_licitacion||'',(o.docs||[]).length,(o.competidores||[]).length]);
+  const cab=['ID','Nombre','Expediente','Plataforma','Tipo','Fecha','Fecha Límite','Órgano','Cliente','Estado','Producto','Subdivisión','Aprobado PM','Presupuesto TAB','Importe Licitación','Precio Final','Descripción','URL Licitación','Nº Docs','Nº Competidores','Nº Comentarios'];
+  const filas=opps.map(o=>[o.id,o.nombre||'',o.expediente||'',o.plataforma||'',o.tipo||'',o.fecha||'',o.fecha_limite||'',o.organo||'',o.cliente||'',o.estado||'',o.producto||'',o.subdivision||'',o.aprobado_pm?'Sí':'No',o.importe||'',o.importe_licitacion||'',o.precio_final||'',o.descripcion||'',o.url_licitacion||'',(o.docs||[]).length,(o.competidores||[]).length,(o.comentarios||[]).length]);
   const ws=XLSX.utils.aoa_to_sheet([cab,...filas]);
-  ws['!cols']=[{wch:14},{wch:55},{wch:20},{wch:22},{wch:10},{wch:12},{wch:12},{wch:35},{wch:10},{wch:16},{wch:22},{wch:12},{wch:12},{wch:16},{wch:18},{wch:14},{wch:40},{wch:40},{wch:8},{wch:10}];
+  ws['!cols']=[{wch:14},{wch:55},{wch:20},{wch:22},{wch:10},{wch:12},{wch:12},{wch:35},{wch:10},{wch:16},{wch:22},{wch:12},{wch:12},{wch:16},{wch:18},{wch:14},{wch:40},{wch:40},{wch:8},{wch:10},{wch:10}];
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,'Oportunidades');
   XLSX.writeFile(wb,'TABSpain_Litio_'+filtro+'_'+new Date().toISOString().slice(0,10)+'.xlsx');
 }
-
 function expJSON(){
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([JSON.stringify(S.opps,null,2)],{type:'application/json'}));
