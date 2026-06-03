@@ -372,7 +372,7 @@ function renderSP(){
     // Documentos con subida directa via Cloudinary
     +'<div class="ps"><div class="pst"><span>Documentos adjuntos</span></div>'
     +((o.docs||[]).length===0?'<div style="font-size:12px;color:var(--text3);margin-bottom:10px">Sin documentos adjuntos</div>':'')
-    +((o.docs||[]).map((d,i)=>'<div class="doc-item"><i class="ti '+fileIcon(d.name)+'" style="font-size:18px;color:var(--tab);flex-shrink:0"></i><span class="doc-name" onclick="window.open(\''+esc(d.url)+'\',\'_blank\')">'+esc(d.name)+'</span><span style="font-size:11px;color:var(--text3);white-space:nowrap">'+d.size+'</span><i class="ti ti-trash fdel" onclick="rmDoc(\''+o.id+'\','+i+')" title="Eliminar"></i></div>').join(''))
+    +((o.docs||[]).map((d,i)=>{const isPdf=(d.name||'').toLowerCase().endsWith('.pdf');const viewUrl=isPdf?d.url.replace('/upload/','/upload/fl_attachment/'):d.url;return '<div class="doc-item"><i class="ti '+fileIcon(d.name)+'" style="font-size:18px;color:var(--tab);flex-shrink:0"></i><span class="doc-name" onclick="abrirDoc(\''+d.url+'\',\''+d.name+'\')" title="Abrir documento">'+esc(d.name)+'</span><span style="font-size:11px;color:var(--text3);white-space:nowrap">'+d.size+'</span><a href="'+viewUrl+'" download="'+esc(d.name)+'" target="_blank" style="color:var(--tab);font-size:14px;flex-shrink:0" title="Descargar"><i class="ti ti-download"></i></a><i class="ti ti-trash fdel" onclick="rmDoc(\''+o.id+'\','+i+')" title="Eliminar"></i></div>';}).join(''))
     +'<div style="margin-top:8px;display:flex;gap:8px;align-items:center"><label style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;background:var(--tab);color:#fff;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:700"><i class="ti ti-upload"></i> Subir archivo<input type="file" multiple style="display:none" onchange="uploadCld(\''+o.id+'\',this)"></label><span id="upload-status-'+o.id+'" style="font-size:11px;color:var(--text3)"></span></div>'
     +'</div>'
 
@@ -408,6 +408,18 @@ async function addComp(id){
   o.competidores.push({nombre:n,precio:p,ganador:g});push(o,'Competidor: '+n+' — '+fmt(p));
   await jbSave();closeSP();openSP(id);
 }
+function abrirDoc(url, nombre){
+  // Para PDFs de Cloudinary, transformar URL para visualización directa
+  const isPdf=(nombre||'').toLowerCase().endsWith('.pdf');
+  if(isPdf){
+    // Usar fl_inline para abrir en visor del navegador sin redirigir al visor de Cloudinary
+    const viewUrl=url.replace('/upload/','/upload/fl_inline/');
+    window.open(viewUrl,'_blank');
+  } else {
+    window.open(url,'_blank');
+  }
+}
+
 async function uploadCld(id, input){
   const files=Array.from(input.files);
   if(!files.length)return;
