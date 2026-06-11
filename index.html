@@ -151,13 +151,15 @@ const LOGO_SRC='data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0
 const PASSWORDS={
   detector:'tab2026',
   pm:'ivan2026',
-  hv:'hv2026'
+  hv:'hv2026',
+  miguel:'miguel2026'
 };
 
 const ROLES={
   detector:{label:'Roberto · Detector',perms:['view','add','edit_own'],color:'#00579C',initials:'RD'},
   pm:{label:'Iván · PM Litio',perms:['view','approve','edit_tech'],color:'#7C3AED',initials:'PM'},
   hv:{label:'HV · Responsable',perms:['view','add_competitor','approve'],color:'#065F46',initials:'HV'},
+  miguel:{label:'Miguel P · Consultor',perms:['view'],color:'#B45309',initials:'MP'},
 };
 const ESTADOS=['Detectada','Revisión PM','Enviada cliente','Ganada','Perdida'];
 const PRODUCTOS=['BESS','Batería Litio','Inversor','Smart Meter','Mixto BESS+Inversor','HV System'];
@@ -270,6 +272,7 @@ function renderLogin(){
     +'<option value="detector">Roberto · Detector de oportunidades</option>'
     +'<option value="pm">Iván · PM Litio</option>'
     +'<option value="hv">HV · Responsable High Voltage</option>'
+    +'<option value="miguel">Miguel P · Consultor</option>'
     +'</select>'
     +'<label style="display:block;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-top:14px;margin-bottom:6px">Contraseña</label>'
     +'<input type="password" id="lpw" class="pw-input" placeholder="Introduce tu contraseña" onkeydown="if(event.key===\'Enter\')doLogin()">'
